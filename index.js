@@ -37,6 +37,8 @@ module.exports.encode = function(msg) {
   )
 }
 
+// FIXME: create (take from example)
+
 // FIXME: might split this out and add validateBatch
 function validateSingle(bmsg, previous) {
   
