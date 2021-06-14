@@ -11,16 +11,37 @@ const BOOLTYPE = Buffer.concat([
 const BOOLTRUE = Buffer.from([1])
 const NULLTYPE = Buffer.concat([
   Buffer.from([6]),
-  Buffer.from([21])
+  Buffer.from([2])
 ])
-const FEEDTYPE = Buffer.concat([
+
+const FEEDTYPE = Buffer.from([0])
+const CLASSICFEEDTYPE = Buffer.concat([
   Buffer.from([0]),
-  Buffer.from([2])
+  Buffer.from([0])
 ])
-const MSGTYPE = Buffer.concat([
+const GGFEEDTYPE = Buffer.concat([
+  Buffer.from([0]),
+  Buffer.from([1])
+])
+const BBFEEDTYPE = Buffer.concat([
+  Buffer.from([0]),
+  Buffer.from([4])
+])
+
+const MSGTYPE = Buffer.from([1])
+const CLASSICMSGTYPE = Buffer.concat([
   Buffer.from([1]),
-  Buffer.from([2])
+  Buffer.from([0])
 ])
+const GGMSGTYPE = Buffer.concat([
+  Buffer.from([1]),
+  Buffer.from([1])
+])
+const BBMSGTYPE = Buffer.concat([
+  Buffer.from([1]),
+  Buffer.from([3])
+])
+
 const SIGNATURETYPE = Buffer.concat([
   Buffer.from([4]),
   Buffer.from([0])
@@ -28,25 +49,47 @@ const SIGNATURETYPE = Buffer.concat([
 
 exports.encode = {
   feed(feed) {
+    let feedtype
+    if (feed.endsWith('.ed25519'))
+      feedtype = CLASSICFEEDTYPE
+    else if (feed.endsWith('.bbfeed-v1'))
+      feedtype = BBFEEDTYPE
+    else if (feed.endsWith('.ggfeed-v1'))
+      feedtype = GGFEEDTYPE
+    else throw "Unknown feed format", feed
+
+    const dotIndex = feed.lastIndexOf('.')
+
     return Buffer.concat([
-      FEEDTYPE,
-      Buffer.from(feed.substring(1, feed.length-'.bbfeed-v1'.length), 'base64')
+      feedtype,
+      Buffer.from(feed.substring(1, dotIndex), 'base64')
     ])
   },
   message(msg) {
     if (msg === null) {
       return MSGTYPE
     } else {
+      let msgtype
+      if (msg.endsWith('.sha256'))
+        msgtype = CLASSICMSGTYPE
+      else if (msg.endsWith('.bbmsg-v1'))
+        msgtype = BBMSGTYPE
+      else if (msg.endsWith('.ggmsg-v1'))
+        msgtype = GGMSGTYPE
+      else throw "Unknown msg", msg
+
+      const dotIndex = msg.lastIndexOf('.')
+
       return Buffer.concat([
-        MSGTYPE,
-        Buffer.from(msg.substring(1, msg.length-'.bbmsg-v1'.length), 'base64')
+        msgtype,
+        Buffer.from(msg.substring(1, dotIndex), 'base64')
       ])
     }
   },
   signature(sig) {
     return Buffer.concat([
       SIGNATURETYPE,
-      Buffer.from(sig.substring(0, sig.length-'.sig.bbfeed-v1'.length), 'base64')
+      Buffer.from(sig.substring(0, sig.length-'.sig.ed25519'.length), 'base64')
     ])
   },
   convert(value) {
@@ -60,18 +103,22 @@ exports.encode = {
         converted[k] = exports.encode.convert(value[k])
       return converted
     } else if (typeof value === 'string') {
-      if (value.startsWith('@') && value.endsWith('.bbfeed-v1'))
+      if (value.startsWith('@'))
         return exports.encode.feed(value)
-      else if (value.startsWith('%') && value.endsWith('.bbmsg-v1'))
+      else if (value.startsWith('%'))
         return exports.encode.message(value)
-      else if (value.endsWith('.sig.bbfeed-v1'))
+      else if (value.endsWith('.sig.ed25519'))
         return exports.encode.signature(value)
       else
         return exports.encode.string(value)
     } else if (typeof value == "boolean") {
       return exports.encode.boolean(value)
-    } else // FIXME: more checks, including floats!
+    } else {
+      if (!Number.isInteger(value) && !Buffer.isBuffer(value))
+        console.log("not encoding unknown value", value)
+      // FIXME: more checks, including floats!
       return value
+    }
   },
   string(str) {
     return Buffer.concat([
@@ -89,11 +136,30 @@ exports.encode = {
 
 exports.decode = {
   feed(benc) {
-    return '@' + benc.slice(2).toString('base64') + '.bbfeed-v1'
+    let feedextension = ''
+    if (benc.slice(0, 2).equals(CLASSICFEEDTYPE))
+      feedextension = '.ed25519'
+    else if (benc.slice(0, 2).equals(BBFEEDTYPE))
+      feedextension = '.bbfeed-v1'
+    else if (benc.slice(0, 2).equals(GGFEEDTYPE))
+      feedextension = '.ggfeed-v1'
+    else throw "Unknown feed", benc
+
+    return '@' + benc.slice(2).toString('base64') + feedextension
   },
   message(benc) {
     if (benc.length == 2) return null
-    else return '%' + benc.slice(2).toString('base64') + '.bbmsg-v1'
+
+    let msgextension = ''
+    if (benc.slice(0, 2).equals(CLASSICMSGTYPE))
+      msgextension = '.ed25519'
+    else if (benc.slice(0, 2).equals(BBMSGTYPE))
+      msgextension = '.bbmsg-v1'
+    else if (benc.slice(0, 2).equals(GGMSGTYPE))
+      msgextension = '.ggmsg-v1'
+    else throw "Unknown msg", benc
+
+    return '%' + benc.slice(2).toString('base64') + msgextension
   },
   signature(benc) {
     return benc.slice(2).toString('base64') + '.sig.bbfeed-v1'
@@ -109,21 +175,19 @@ exports.decode = {
         return exports.decode.boolean(value)
       else if (value.slice(0, 2).equals(NULLTYPE))
         return null
-      else if (value.slice(0, 2).equals(FEEDTYPE))
+      else if (value.slice(0, 1).equals(FEEDTYPE))
         return exports.decode.feed(value)
-      else if (value.slice(0, 2).equals(MSGTYPE))
+      else if (value.slice(0, 1).equals(MSGTYPE))
         return exports.decode.message(value)
       else if (value.slice(0, 2).equals(SIGNATURETYPE))
         return exports.decode.signature(value)
       else
-        throw "Unknown buffer " + value
+        return value.toString('base64')
     } else if (typeof value === 'object' && value !== null) {
       const converted = {}
       for (var k in value)
         converted[k] = exports.decode.convert(value[k])
       return converted
-    } else if (typeof value === 'string') {
-      return value
     } else // FIXME: more checks, including floats!
       return value
   },
