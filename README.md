@@ -1,6 +1,6 @@
 # SSB meta feeds feed format
 
-Implementation of [ssb-meta-feeds-format] in JS
+Implementation of [bendy butt] in JS
 
 ## api
 
@@ -21,4 +21,4 @@ previous message key on the meta feed or null, the next sequence
 number and a timestamp and returns a classic compatible json object.
 
 
-[ssb-meta-feeds-format]: https://github.com/ssb-ngi-pointer/bipfy-badger-spec
+[bendy butt]: https://github.com/ssb-ngi-pointer/bendy-butt-spec
