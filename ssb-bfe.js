@@ -162,7 +162,7 @@ exports.decode = {
     return '%' + benc.slice(2).toString('base64') + msgextension
   },
   signature(benc) {
-    return benc.slice(2).toString('base64') + '.sig.bbfeed-v1'
+    return benc.slice(2).toString('base64') + '.sig.ed25519'
   },
   convert(value) {
     if (Array.isArray(value)) {
