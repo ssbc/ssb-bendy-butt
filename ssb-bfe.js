@@ -195,6 +195,6 @@ exports.decode = {
     return benc.slice(2).toString()
   },
   boolean(benc) {
-    return benc.slice(2).equals(Buffer.from([1]))
+    return benc.slice(2).equals(BOOLTRUE)
   }
 }
