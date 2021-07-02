@@ -2,30 +2,32 @@ const tape = require('tape')
 const timestamp = require('monotonic-timestamp')
 const mfff = require('../')
 
-const msg = {
-  previous: "%H3MlLmVPVgHU6rBSzautUBZibDttkI+cU4lAFUIM8Ag=.bbmsg-v1",
-  author: "@6CAxOI3f+LUOVrbAl0IemqiS7ATpQvr9Mdw9LC4+Uv0=.bbfeed-v1",
-  sequence: 2,
-  timestamp: 1456154934819,
-  content: {
-    type: "metafeed/add",
-    feedformat: "classic",
-    subfeed: "@6CAxOI3f+LUOVrbAl0IemqiS7ATpQvr9Mdw9LC4+Uv0=.bbfeed-v1",
-    bool: true,
-    tangles: {
-      metafeed: {
-        root: null,
-        previous: [
-          "%H3MlLmVPVgHU6rBSzautUBZibDttkI+cU4lAFUIM8Ag=.bbmsg-v1"
-        ]
-      }
-    }
-  },
-  contentSignature: "K1PgBYX64NUB6bBzcfu4BPEJtjl/Y+PZx7h/y94k6OjqCR9dIHXzjdiM4P7terusbSO464spYjz/LwvP4nqzAg==.sig.ed25519",
-  signature: "F/XZ1uOwXNLKSHynxIvV/FUW1Fd9hIqxJw8TgTbMlf39SbVTwdRPdgxZxp9DoaMIj2yEfm14O0L9kcQJCIW2Cg==.sig.ed25519"
-}
-
 tape('encode/decode works', function (t) {
+  // a message with lots of different cases, please note the
+  // signatures are fake (and not relevant to encode/decode test)
+  const msg = {
+    previous: "%H3MlLmVPVgHU6rBSzautUBZibDttkI+cU4lAFUIM8Ag=.bbmsg-v1",
+    author: "@6CAxOI3f+LUOVrbAl0IemqiS7ATpQvr9Mdw9LC4+Uv0=.bbfeed-v1",
+    sequence: 2,
+    timestamp: 1456154934819,
+    content: {
+      type: "metafeed/add",
+      feedpurpose: "test",
+      subfeed: "@6CAxOI3f+LUOVrbAl0IemqiS7ATpQvr9Mdw9LC4+Uv0=.bbfeed-v1",
+      bool: true,
+      tangles: {
+        metafeed: {
+          root: null,
+          previous: [
+            "%H3MlLmVPVgHU6rBSzautUBZibDttkI+cU4lAFUIM8Ag=.bbmsg-v1"
+          ]
+        }
+      }
+    },
+    contentSignature: "K1PgBYX64NUB6bBzcfu4BPEJtjl/Y+PZx7h/y94k6OjqCR9dIHXzjdiM4P7terusbSO464spYjz/LwvP4nqzAg==.sig.ed25519",
+    signature: "F/XZ1uOwXNLKSHynxIvV/FUW1Fd9hIqxJw8TgTbMlf39SbVTwdRPdgxZxp9DoaMIj2yEfm14O0L9kcQJCIW2Cg==.sig.ed25519"
+  }
+
   const encoded = mfff.encode(msg)
   t.equal(Buffer.isBuffer(encoded), true, 'buffer')
   const decoded = mfff.decode(encoded)
@@ -50,7 +52,6 @@ tape('create', function(t) {
 
   const mainContent = {
     type: "metafeed/add",
-    feedformat: "classic",
     feedpurpose: "main",
     subfeed: mainKeys.id,
     tangles: {
@@ -77,7 +78,6 @@ tape('create', function(t) {
 
   const indexContent = {
     type: "metafeed/add",
-    feedformat: "bbfeed",
     feedpurpose: "index",
     subfeed: indexKeys.id,
     tangles: {

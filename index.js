@@ -22,6 +22,7 @@ module.exports.decode = function(bmsg) {
 
 // input: json encoded msg from db
 module.exports.encode = function(msg) {
+  // FIXME: maybe box2
   return bencode.encode(
     [
       [
