@@ -47,6 +47,16 @@ const SIGNATURETYPE = Buffer.concat([
   Buffer.from([0])
 ])
 
+const BOXTYPE = Buffer.from([5])
+const BOX1TYPE = Buffer.concat([
+  Buffer.from([5]),
+  Buffer.from([0])
+])
+const BOX2TYPE = Buffer.concat([
+  Buffer.from([5]),
+  Buffer.from([1])
+])
+
 exports.encode = {
   feed(feed) {
     let feedtype
@@ -86,6 +96,19 @@ exports.encode = {
       ])
     }
   },
+  box(value) {
+    if (value.endsWith(".box"))
+      return Buffer.concat([
+        BOX1TYPE,
+        Buffer.from(value.substring(0, value.length-'.box'.length), 'base64')
+      ])
+    else if (value.endsWith(".box2"))
+      return Buffer.concat([
+        BOX2TYPE,
+        Buffer.from(value.substring(0, value.length-'.box2'.length), 'base64')
+      ])
+    else throw "Unknown box", value
+  },
   signature(sig) {
     return Buffer.concat([
       SIGNATURETYPE,
@@ -109,6 +132,8 @@ exports.encode = {
         return exports.encode.message(value)
       else if (value.endsWith('.sig.ed25519'))
         return exports.encode.signature(value)
+      else if (value.endsWith('.box2') || value.endsWith('.box'))
+        return exports.encode.box(value)
       else
         return exports.encode.string(value)
     } else if (typeof value == "boolean") {
@@ -135,6 +160,13 @@ exports.encode = {
 }
 
 exports.decode = {
+  box(benc) {
+    if (benc.slice(0, 2).equals(BOX1TYPE))
+      return benc.slice(2).toString('base64') + '.box1'
+    else if (benc.slice(0, 2).equals(BOX2TYPE))
+      return benc.slice(2).toString('base64') + '.box2'
+    else throw "Unknown box", benc
+  },
   feed(benc) {
     let feedextension = ''
     if (benc.slice(0, 2).equals(CLASSICFEEDTYPE))
@@ -179,6 +211,8 @@ exports.decode = {
         return exports.decode.feed(value)
       else if (value.slice(0, 1).equals(MSGTYPE))
         return exports.decode.message(value)
+      else if (value.slice(0, 1).equals(BOXTYPE))
+        return exports.decode.box(value)
       else if (value.slice(0, 2).equals(SIGNATURETYPE))
         return exports.decode.signature(value)
       else
