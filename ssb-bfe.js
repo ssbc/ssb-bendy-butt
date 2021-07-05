@@ -66,7 +66,7 @@ exports.encode = {
       feedtype = BBFEEDTYPE
     else if (feed.endsWith('.ggfeed-v1'))
       feedtype = GGFEEDTYPE
-    else throw "Unknown feed format", feed
+    else throw new Error("Unknown feed format: " + feed)
 
     const dotIndex = feed.lastIndexOf('.')
 
@@ -86,7 +86,7 @@ exports.encode = {
         msgtype = BBMSGTYPE
       else if (msg.endsWith('.ggmsg-v1'))
         msgtype = GGMSGTYPE
-      else throw "Unknown msg", msg
+      else throw new Error("Unknown msg: " + msg)
 
       const dotIndex = msg.lastIndexOf('.')
 
@@ -107,7 +107,7 @@ exports.encode = {
         BOX2TYPE,
         Buffer.from(value.substring(0, value.length-'.box2'.length), 'base64')
       ])
-    else throw "Unknown box", value
+    else throw new Error("Unknown box: " + value)
   },
   signature(sig) {
     return Buffer.concat([
@@ -165,7 +165,7 @@ exports.decode = {
       return benc.slice(2).toString('base64') + '.box1'
     else if (benc.slice(0, 2).equals(BOX2TYPE))
       return benc.slice(2).toString('base64') + '.box2'
-    else throw "Unknown box", benc
+    else throw new Erro("Unknown box: " + benc)
   },
   feed(benc) {
     let feedextension = ''
@@ -175,7 +175,7 @@ exports.decode = {
       feedextension = '.bbfeed-v1'
     else if (benc.slice(0, 2).equals(GGFEEDTYPE))
       feedextension = '.ggfeed-v1'
-    else throw "Unknown feed", benc
+    else throw new Error("Unknown feed: " + benc)
 
     return '@' + benc.slice(2).toString('base64') + feedextension
   },
@@ -189,7 +189,7 @@ exports.decode = {
       msgextension = '.bbmsg-v1'
     else if (benc.slice(0, 2).equals(GGMSGTYPE))
       msgextension = '.ggmsg-v1'
-    else throw "Unknown msg", benc
+    else throw new Error("Unknown msg: " + benc)
 
     return '%' + benc.slice(2).toString('base64') + msgextension
   },
@@ -200,7 +200,7 @@ exports.decode = {
     if (Array.isArray(value)) {
       return value.map(x => exports.decode.convert(x))
     } else if (Buffer.isBuffer(value)) {
-      if (value.length < 2) throw "Buffer length < 2" + value
+      if (value.length < 2) throw new Error("Buffer length < 2, " + value)
       if (value.slice(0, 2).equals(STRINGTYPE))
         return exports.decode.string(value)
       else if (value.slice(0, 2).equals(BOOLTYPE))
