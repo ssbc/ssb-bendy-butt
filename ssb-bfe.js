@@ -184,7 +184,7 @@ exports.decode = {
 
     let msgextension = ''
     if (benc.slice(0, 2).equals(CLASSICMSGTYPE))
-      msgextension = '.ed25519'
+      msgextension = '.sha256'
     else if (benc.slice(0, 2).equals(BBMSGTYPE))
       msgextension = '.bbmsg-v1'
     else if (benc.slice(0, 2).equals(GGMSGTYPE))

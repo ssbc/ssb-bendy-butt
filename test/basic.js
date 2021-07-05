@@ -14,6 +14,7 @@ tape('encode/decode works', function (t) {
       type: "metafeed/add",
       feedpurpose: "test",
       subfeed: "@6CAxOI3f+LUOVrbAl0IemqiS7ATpQvr9Mdw9LC4+Uv0=.bbfeed-v1",
+      classichash: '%H3MlLmVPVgHU6rBSzautUBZibDttkI+cU4lAFUIM8Ag=.sha256',
       bool: true,
       tangles: {
         metafeed: {
