@@ -8,7 +8,8 @@
     "url": "git://github.com/ssb-ngi-pointer/ssb-bendy-butt.git"
   },
   "dependencies": {
-    "bencode": "^2.0.1"
+    "bencode": "^2.0.1",
+    "ssb-bfe": "^0.1.0"
   },
   "devDependencies": {
     "monotonic-timestamp": "^0.0.9",

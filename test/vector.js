@@ -1,7 +1,7 @@
 const tape = require('tape')
 const fs = require('fs')
 const mfff = require('../')
-const bfe = require('../ssb-bfe')
+const bfe = require('ssb-bfe')
 
 const vec = JSON.parse(fs.readFileSync('test/testvector-metafeed-managment.json', 'utf8'))
 
@@ -16,8 +16,8 @@ tape('vector', function(t) {
       previous: msg.Previous,
       timestamp: msg.Timestamp,
       content: msg.HighlevelContent[0],
-      contentSignature: bfe.decode.signature(Buffer.from(msg.HighlevelContent[1].HexString, 'hex')),
-      signature: bfe.decode.signature(Buffer.from(msg.Signature, 'hex')),
+      contentSignature: bfe.decode(Buffer.from(msg.HighlevelContent[1].HexString, 'hex')),
+      signature: bfe.decode(Buffer.from(msg.Signature, 'hex')),
     }
     const encoded = mfff.encode(msgExtracted)
 
