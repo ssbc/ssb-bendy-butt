@@ -4,14 +4,14 @@ const curve = require('ssb-keys/sodium')
 const u = require('ssb-keys/util')
 const bfe = require('ssb-bfe')
 
-module.exports.decodeBox2 = function(box2) {
+function decodeBox2(box2) {
   const decoded = bencode.decode(box2)
   return bfe.decode(decoded)
 }
 
 // assumes msg has already been validated
 // returns a classic compatible json object
-module.exports.decode = function(bmsg) {
+function decode(bmsg) {
   const [payload, signature] = bencode.decode(bmsg)
   const [author, sequence, previous, timestamp, contentSection] = payload
 
@@ -42,7 +42,7 @@ module.exports.decode = function(bmsg) {
 }
 
 // input: json encoded msg from db
-module.exports.encode = function(msg) {
+function encode(msg) {
   const contentSection =
     typeof msg.content === 'string' && msg.content.endsWith('.box2')
       ? bfe.encodeBendyButt(msg.content)
@@ -66,7 +66,7 @@ module.exports.encode = function(msg) {
 }
 
 // returns a classic compatible json object
-module.exports.create = function(content, mfKeys, sfKeys, previous, sequence, timestamp, boxer) {
+function create(content, mfKeys, sfKeys, previous, sequence, timestamp, boxer) {
   const convertedContent = bfe.encodeBendyButt(content)
   const contentSignature = Buffer.concat([
     Buffer.from([4, 0]), // FIXME: this module should not know about this detail
@@ -125,11 +125,19 @@ module.exports.create = function(content, mfKeys, sfKeys, previous, sequence, ti
 }
 
 // msg must be a classic compatible msg
-module.exports.hash = function(msg) {
-  return '%' + ssbKeys.hash(module.exports.encode(msg)).replace(".sha256", '.bbmsg-v1')
+function hash(msg) {
+  return '%' + ssbKeys.hash(encode(msg)).replace(".sha256", '.bbmsg-v1')
 }
 
 // FIXME: might split this out and add validateBatch
 function validateSingle(bmsg, previous) {
 
+}
+
+module.exports = {
+  decodeBox2,
+  decode,
+  encode,
+  create,
+  hash,
 }
