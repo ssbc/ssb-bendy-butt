@@ -18,50 +18,47 @@ const msg = {
     tangles: {
       metafeed: {
         root: null,
-        previous: [
-          '%H3MlLmVPVgHU6rBSzautUBZibDttkI+cU4lAFUIM8Ag=.bbmsg-v1'
-        ]
-      }
-    }
-  }
+        previous: ['%H3MlLmVPVgHU6rBSzautUBZibDttkI+cU4lAFUIM8Ag=.bbmsg-v1'],
+      },
+    },
+  },
 }
 
 const keys = ssbKeys.loadOrCreateSync(path.join('/home/arj/.ssb', 'secret'))
-var curve = require("ssb-keys/sodium")
+var curve = require('ssb-keys/sodium')
 toBuffer = function (buf) {
-  if (buf == null) return buf;
-  if (Buffer.isBuffer(buf)) return buf;
-  var i = buf.indexOf(".");
-  var start = 0;
-  return Buffer.from(buf.substring(start, ~i ? i : buf.length), "base64");
+  if (buf == null) return buf
+  if (Buffer.isBuffer(buf)) return buf
+  var i = buf.indexOf('.')
+  var start = 0
+  return Buffer.from(buf.substring(start, ~i ? i : buf.length), 'base64')
 }
 
 const encodedContent = bfe.encode.convert(msg.content)
-msg.contentSignature = bfe.decode.signature(Buffer.concat([
-  Buffer.from([4]),
-  Buffer.from([0]),
-  curve.sign(toBuffer(keys.private), bencode.encode(encodedContent))
-]))
+msg.contentSignature = bfe.decode.signature(
+  Buffer.concat([
+    Buffer.from([4]),
+    Buffer.from([0]),
+    curve.sign(toBuffer(keys.private), bencode.encode(encodedContent)),
+  ])
+)
 
 const payload = [
   bfe.encode.feed(msg.author),
   msg.sequence,
   bfe.encode.message(msg.previous),
   msg.timestamp,
-  [
-    bfe.encode.convert(msg.content),
-    bfe.encode.signature(msg.contentSignature)
-  ]
+  [bfe.encode.convert(msg.content), bfe.encode.signature(msg.contentSignature)],
 ]
-msg.signature = bfe.decode.signature(Buffer.concat([
-  Buffer.from([4]),
-  Buffer.from([0]),
-  curve.sign(toBuffer(keys.private), bencode.encode(payload))
-]))
+msg.signature = bfe.decode.signature(
+  Buffer.concat([
+    Buffer.from([4]),
+    Buffer.from([0]),
+    curve.sign(toBuffer(keys.private), bencode.encode(payload)),
+  ])
+)
 
 console.log(JSON.stringify(msg, null, 2))
-
-
 
 //const data = fs.readFileSync('m0.bencode')
 //console.log(mfff.decode(data))

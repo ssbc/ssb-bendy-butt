@@ -20,7 +20,7 @@ function decode(bmsg) {
     author: bfe.decode(author),
     sequence: bfe.decode(sequence),
     timestamp: bfe.decode(timestamp),
-    signature: bfe.decode(signature)
+    signature: bfe.decode(signature),
   }
 
   if (Array.isArray(contentSection)) {
@@ -34,7 +34,7 @@ function decode(bmsg) {
   else {
     const content = contentSection
     Object.assign(result, {
-      content: bfe.decode(content)
+      content: bfe.decode(content),
     })
   }
 
@@ -48,21 +48,19 @@ function encode(msg) {
       ? bfe.encodeBendyButt(msg.content)
       : [
           bfe.encodeBendyButt(msg.content),
-          bfe.encodeBendyButt(msg.contentSignature)
+          bfe.encodeBendyButt(msg.contentSignature),
         ]
 
-  return bencode.encode(
+  return bencode.encode([
     [
-      [
-        bfe.encodeBendyButt(msg.author),
-        bfe.encodeBendyButt(msg.sequence),
-        bfe.encodeBendyButt(msg.previous),
-        bfe.encodeBendyButt(msg.timestamp),
-        contentSection
-      ],
-      bfe.encodeBendyButt(msg.signature)
-    ]
-  )
+      bfe.encodeBendyButt(msg.author),
+      bfe.encodeBendyButt(msg.sequence),
+      bfe.encodeBendyButt(msg.previous),
+      bfe.encodeBendyButt(msg.timestamp),
+      contentSection,
+    ],
+    bfe.encodeBendyButt(msg.signature),
+  ])
 }
 
 // returns a classic compatible json object
@@ -70,14 +68,10 @@ function create(content, mfKeys, sfKeys, previous, sequence, timestamp, boxer) {
   const convertedContent = bfe.encodeBendyButt(content)
   const contentSignature = Buffer.concat([
     Buffer.from([4, 0]), // FIXME: this module should not know about this detail
-    curve.sign(u.toBuffer(sfKeys.private),
-               bencode.encode(convertedContent))
+    curve.sign(u.toBuffer(sfKeys.private), bencode.encode(convertedContent)),
   ])
 
-  let contentAndSignature = [
-    convertedContent,
-    contentSignature
-  ]
+  let contentAndSignature = [convertedContent, contentSignature]
 
   if (content.recps)
     contentAndSignature = boxer(
@@ -92,14 +86,13 @@ function create(content, mfKeys, sfKeys, previous, sequence, timestamp, boxer) {
     sequence + 1,
     previous,
     timestamp,
-    contentAndSignature
+    contentAndSignature,
   ]
 
   const convertedPayload = bfe.encodeBendyButt(payload)
   const payloadSignature = Buffer.concat([
     Buffer.from([4, 0]), // FIXME: this module should not know about this detail
-    curve.sign(u.toBuffer(mfKeys.private),
-               bencode.encode(convertedPayload))
+    curve.sign(u.toBuffer(mfKeys.private), bencode.encode(convertedPayload)),
   ])
 
   const result = {
@@ -107,17 +100,17 @@ function create(content, mfKeys, sfKeys, previous, sequence, timestamp, boxer) {
     author: mfKeys.id,
     sequence,
     timestamp,
-    signature: bfe.decode(payloadSignature)
+    signature: bfe.decode(payloadSignature),
   }
 
   if (content.recps) {
     Object.assign(result, {
-      content: contentAndSignature
+      content: contentAndSignature,
     })
   } else {
     Object.assign(result, {
       content,
-      contentSignature: bfe.decode(contentSignature)
+      contentSignature: bfe.decode(contentSignature),
     })
   }
 
@@ -126,13 +119,11 @@ function create(content, mfKeys, sfKeys, previous, sequence, timestamp, boxer) {
 
 // msg must be a classic compatible msg
 function hash(msg) {
-  return '%' + ssbKeys.hash(encode(msg)).replace(".sha256", '.bbmsg-v1')
+  return '%' + ssbKeys.hash(encode(msg)).replace('.sha256', '.bbmsg-v1')
 }
 
 // FIXME: might split this out and add validateBatch
-function validateSingle(bmsg, previous) {
-
-}
+function validateSingle(bmsg, previous) {}
 
 module.exports = {
   decodeBox2,
