@@ -39,30 +39,30 @@ module.exports.decode = function(bmsg) {
 module.exports.encode = function(msg) {
   let content
   if (typeof msg.content === 'string' && msg.content.endsWith(".box2"))
-    content = bfe.encode(msg.content)
+    content = bfe.encodeBendyButt(msg.content)
   else
     content = [
-      bfe.encode(msg.content),
-      bfe.encode(msg.contentSignature)
+      bfe.encodeBendyButt(msg.content),
+      bfe.encodeBendyButt(msg.contentSignature)
     ]
 
   return bencode.encode(
     [
       [
-        bfe.encode(msg.author),
+        bfe.encodeBendyButt(msg.author),
         msg.sequence,
-        bfe.encode(msg.previous),
+        bfe.encodeBendyButt(msg.previous),
         msg.timestamp,
         content
       ],
-      bfe.encode(msg.signature)
+      bfe.encodeBendyButt(msg.signature)
     ]
   )
 }
 
 // returns a classic compatible json object
 module.exports.create = function(content, mfKeys, sfKeys, previous, sequence, timestamp, boxer) {
-  const convertedContent = bfe.encode(content)
+  const convertedContent = bfe.encodeBendyButt(content)
   const contentSignature = Buffer.concat([
     Buffer.from([4]),
     Buffer.from([0]),
@@ -77,9 +77,9 @@ module.exports.create = function(content, mfKeys, sfKeys, previous, sequence, ti
 
   if (content.recps)
     contentAndSignature = boxer(
-      bfe.encode(mfKeys.id),
+      bfe.encodeBendyButt(mfKeys.id),
       bencode.encode(contentAndSignature),
-      bfe.encode(previous),
+      bfe.encodeBendyButt(previous),
       content.recps
     )
 
@@ -91,7 +91,7 @@ module.exports.create = function(content, mfKeys, sfKeys, previous, sequence, ti
     contentAndSignature
   ]
 
-  const convertedPayload = bfe.encode(payload)
+  const convertedPayload = bfe.encodeBendyButt(payload)
   const payloadSignature = Buffer.concat([
     Buffer.from([4]),
     Buffer.from([0]),
