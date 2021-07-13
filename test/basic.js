@@ -1,6 +1,6 @@
 const tape = require('tape')
 const timestamp = require('monotonic-timestamp')
-const mfff = require('../')
+const bb = require('../')
 
 tape('encode/decode works', function (t) {
   // a message with lots of different cases, please note the
@@ -29,9 +29,9 @@ tape('encode/decode works', function (t) {
     signature: "F/XZ1uOwXNLKSHynxIvV/FUW1Fd9hIqxJw8TgTbMlf39SbVTwdRPdgxZxp9DoaMIj2yEfm14O0L9kcQJCIW2Cg==.sig.ed25519"
   }
 
-  const encoded = mfff.encode(msg)
+  const encoded = bb.encode(msg)
   t.equal(Buffer.isBuffer(encoded), true, 'buffer')
-  const decoded = mfff.decode(encoded)
+  const decoded = bb.decode(encoded)
   t.deepEqual(decoded, msg, 'properly decoded')
   t.end()
 })
@@ -63,8 +63,8 @@ tape('create', function(t) {
     }
   }
 
-  const msg1 = mfff.create(mainContent, mfKeys, mainKeys, null, 1, timestamp())
-  const msg1Hash = mfff.hash(msg1)
+  const msg1 = bb.create(mainContent, mfKeys, mainKeys, null, 1, timestamp())
+  const msg1Hash = bb.hash(msg1)
 
   t.equal(msg1.previous, null, 'previous correct')
   t.equal(msg1.author, mfKeys.id, 'author correct')
@@ -89,12 +89,12 @@ tape('create', function(t) {
     }
   }
 
-  const msg2 = mfff.create(indexContent, mfKeys, indexKeys, msg1Hash, 2, timestamp())
+  const msg2 = bb.create(indexContent, mfKeys, indexKeys, msg1Hash, 2, timestamp())
 
   t.equal(msg2.previous, msg1Hash)
   t.equal(msg2.sequence, 2, 'sequence correct')
 
-  const msg2network = mfff.decode(mfff.encode(msg2))
+  const msg2network = bb.decode(bb.encode(msg2))
   t.deepEqual(msg2, msg2network)
 
   t.end()

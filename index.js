@@ -12,48 +12,53 @@ module.exports.decodeBox2 = function(box2) {
 // assumes msg has already been validated
 // returns a classic compatible json object
 module.exports.decode = function(bmsg) {
-  const decoded = bencode.decode(bmsg)
+  const [payload, signature] = bencode.decode(bmsg)
+  const [author, sequence, previous, timestamp, contentSection] = payload
 
   const result = {
-    previous: bfe.decode(decoded[0][2]),
-    author: bfe.decode(decoded[0][0]),
-    sequence: decoded[0][1],
-    timestamp: decoded[0][3],
-    signature: bfe.decode(decoded[1])
+    previous: bfe.decode(previous),
+    author: bfe.decode(author),
+    sequence: bfe.decode(sequence),
+    timestamp: bfe.decode(timestamp),
+    signature: bfe.decode(signature)
   }
 
-  if (Array.isArray(decoded[0][4]))
+  if (Array.isArray(contentSection)) {
+    const [content, contentSignature] = contentSection
     Object.assign(result, {
-      content: bfe.decode(decoded[0][4][0]),
-      contentSignature: bfe.decode(decoded[0][4][1]),
+      content: bfe.decode(content),
+      contentSignature: bfe.decode(contentSignature),
     })
-  else // box2
+  }
+  // box2
+  else {
+    const content = contentSection
     Object.assign(result, {
-      content: bfe.decode(decoded[0][4])
+      content: bfe.decode(content)
     })
+  }
 
   return result
 }
 
 // input: json encoded msg from db
 module.exports.encode = function(msg) {
-  let content
-  if (typeof msg.content === 'string' && msg.content.endsWith(".box2"))
-    content = bfe.encodeBendyButt(msg.content)
-  else
-    content = [
-      bfe.encodeBendyButt(msg.content),
-      bfe.encodeBendyButt(msg.contentSignature)
-    ]
+  const contentSection =
+    typeof msg.content === 'string' && msg.content.endsWith('.box2')
+      ? bfe.encodeBendyButt(msg.content)
+      : [
+          bfe.encodeBendyButt(msg.content),
+          bfe.encodeBendyButt(msg.contentSignature)
+        ]
 
   return bencode.encode(
     [
       [
         bfe.encodeBendyButt(msg.author),
-        msg.sequence,
+        bfe.encodeBendyButt(msg.sequence),
         bfe.encodeBendyButt(msg.previous),
-        msg.timestamp,
-        content
+        bfe.encodeBendyButt(msg.timestamp),
+        contentSection
       ],
       bfe.encodeBendyButt(msg.signature)
     ]
@@ -64,8 +69,7 @@ module.exports.encode = function(msg) {
 module.exports.create = function(content, mfKeys, sfKeys, previous, sequence, timestamp, boxer) {
   const convertedContent = bfe.encodeBendyButt(content)
   const contentSignature = Buffer.concat([
-    Buffer.from([4]),
-    Buffer.from([0]),
+    Buffer.from([4, 0]), // FIXME: this module should not know about this detail
     curve.sign(u.toBuffer(sfKeys.private),
                bencode.encode(convertedContent))
   ])
@@ -93,8 +97,7 @@ module.exports.create = function(content, mfKeys, sfKeys, previous, sequence, ti
 
   const convertedPayload = bfe.encodeBendyButt(payload)
   const payloadSignature = Buffer.concat([
-    Buffer.from([4]),
-    Buffer.from([0]),
+    Buffer.from([4, 0]), // FIXME: this module should not know about this detail
     curve.sign(u.toBuffer(mfKeys.private),
                bencode.encode(convertedPayload))
   ])
@@ -128,5 +131,5 @@ module.exports.hash = function(msg) {
 
 // FIXME: might split this out and add validateBatch
 function validateSingle(bmsg, previous) {
-  
+
 }

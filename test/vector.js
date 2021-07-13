@@ -1,12 +1,12 @@
 const tape = require('tape')
 const fs = require('fs')
-const mfff = require('../')
+const bb = require('../')
 const bfe = require('ssb-bfe')
 
 const vec = JSON.parse(fs.readFileSync('test/testvector-metafeed-managment.json', 'utf8'))
 
 tape('vector', function(t) {
-  vec.Entries.forEach(msg => {
+  vec.Entries.forEach((msg, i) => {
     if (msg.HighlevelContent[0].nonce)
       msg.HighlevelContent[0].nonce = Buffer.from(msg.HighlevelContent[0].nonce, 'base64')
 
@@ -19,10 +19,10 @@ tape('vector', function(t) {
       contentSignature: bfe.decode(Buffer.from(msg.HighlevelContent[1].HexString, 'hex')),
       signature: bfe.decode(Buffer.from(msg.Signature, 'hex')),
     }
-    const encoded = mfff.encode(msgExtracted)
+    const encoded = bb.encode(msgExtracted)
 
-    const jsonEncodeDecode = JSON.stringify(mfff.decode(encoded), null, 2)
-    const decode = JSON.stringify(mfff.decode(Buffer.from(msg.EncodedData, 'hex')), null, 2)
+    const jsonEncodeDecode = JSON.stringify(bb.decode(encoded), null, 2)
+    const decode = JSON.stringify(bb.decode(Buffer.from(msg.EncodedData, 'hex')), null, 2)
 
     t.deepEqual(jsonEncodeDecode, decode, 'decode work')
     t.deepEqual(encoded.toString('hex'), msg.EncodedData, 'encode work')
