@@ -1,5 +1,4 @@
 const tape = require('tape')
-const timestamp = require('monotonic-timestamp')
 const bb = require('../')
 
 tape('encode/decode works', function (t) {
@@ -65,12 +64,13 @@ tape('create', function (t) {
     },
   }
 
-  const msg1 = bb.create(mainContent, mfKeys, mainKeys, null, 1, timestamp())
+  const msg1 = bb.create(mainContent, mfKeys, mainKeys, null, 1, 12345)
   const msg1Hash = bb.hash(msg1)
 
   t.equal(msg1.previous, null, 'previous correct')
   t.equal(msg1.author, mfKeys.id, 'author correct')
   t.equal(msg1.sequence, 1, 'sequence correct')
+  t.true(msg1.signature.startsWith('x8dOTj'), 'signature is correct')
 
   const indexKeys = {
     curve: 'ed25519',
@@ -92,17 +92,11 @@ tape('create', function (t) {
     },
   }
 
-  const msg2 = bb.create(
-    indexContent,
-    mfKeys,
-    indexKeys,
-    msg1Hash,
-    2,
-    timestamp()
-  )
+  const msg2 = bb.create(indexContent, mfKeys, indexKeys, msg1Hash, 2, 23456)
 
   t.equal(msg2.previous, msg1Hash)
   t.equal(msg2.sequence, 2, 'sequence correct')
+  t.true(msg2.signature.startsWith('Mj6c3mSY'), 'signature is correct')
 
   const msg2network = bb.decode(bb.encode(msg2))
   t.deepEqual(msg2, msg2network)
