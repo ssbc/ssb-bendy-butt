@@ -7,10 +7,15 @@ function decodeBox2(box2) {
   return bfe.decode(decoded)
 }
 
-// assumes msg has already been validated
-// returns a classic compatible json object
-function decode(bmsg) {
-  const [payload, signature] = bencode.decode(bmsg)
+/**
+ * Decode a bendy-butt message into an object useful for ssb-db and ssb-db2.
+ * Assumes the bendy-butt message has already been validated.
+ *
+ * @param {Buffer} bbmsg a bendy-butt message encoded with `bencode`
+ * @returns {Object} an object compatible with ssb/classic `msg.value`
+ */
+function decode(bbmsg) {
+  const [payload, signature] = bencode.decode(bbmsg)
   const [author, sequence, previous, timestamp, contentSection] = payload
 
   const result = {
@@ -39,29 +44,50 @@ function decode(bmsg) {
   return result
 }
 
-// input: json encoded msg from db
-function encode(msg) {
+/**
+ * Encode a database "msg value" to a bendy-butt msg in a Buffer.
+ *
+ * @param {Object} msgVal an object compatible with ssb/classic `msg.value`
+ * @returns {Buffer} a bendy-butt message encoded with `bencode`
+ */
+function encode(msgVal) {
   const contentSection =
-    typeof msg.content === 'string' && msg.content.endsWith('.box2')
-      ? bfe.encodeBendyButt(msg.content)
+    typeof msgVal.content === 'string' && msgVal.content.endsWith('.box2')
+      ? bfe.encodeBendyButt(msgVal.content)
       : [
-          bfe.encodeBendyButt(msg.content),
-          bfe.encodeBendyButt(msg.contentSignature),
+          bfe.encodeBendyButt(msgVal.content),
+          bfe.encodeBendyButt(msgVal.contentSignature),
         ]
 
   return bencode.encode([
     [
-      bfe.encodeBendyButt(msg.author),
-      bfe.encodeBendyButt(msg.sequence),
-      bfe.encodeBendyButt(msg.previous),
-      bfe.encodeBendyButt(msg.timestamp),
+      bfe.encodeBendyButt(msgVal.author),
+      bfe.encodeBendyButt(msgVal.sequence),
+      bfe.encodeBendyButt(msgVal.previous),
+      bfe.encodeBendyButt(msgVal.timestamp),
       contentSection,
     ],
-    bfe.encodeBendyButt(msg.signature),
+    bfe.encodeBendyButt(msgVal.signature),
   ])
 }
 
-// returns a classic compatible json object
+/**
+ * Creates a new bendy-butt message that can be appended to a bendy-butt feed.
+ *
+ * FIXME: this method does not seem to belong to `ssb-bendy-butt` because it is
+ * aware of the metafeed spec (requiring mfKeys and sfKeys). Perhaps this should
+ * be moved to `ssb-meta-feeds`?
+ *
+ * @param {Object} content an arbitrary object comprising the message contents
+ * @param {import('ssb-keys').Keys} mfKeys the keys object of the metafeed
+ * @param {import('ssb-keys').Keys} sfKeys the keys object for the subfeed
+ * @param {string | null} previous msg ID of the previous bendy-butt msg in the
+ * feed
+ * @param {number} sequence sequence number of the new msg to be created
+ * @param {number} timestamp timestamp for the new msg to be created
+ * @param {function | undefined} boxer function to encrypt the contents
+ * @returns {Object} an object compatible with ssb/classic `msg.value`
+ */
 function create(content, mfKeys, sfKeys, previous, sequence, timestamp, boxer) {
   const contentBFE = bfe.encodeBendyButt(content)
   const contentSignature = ssbKeys.sign(sfKeys, bencode.encode(contentBFE))
@@ -89,7 +115,7 @@ function create(content, mfKeys, sfKeys, previous, sequence, timestamp, boxer) {
   const payloadSignature = ssbKeys.sign(mfKeys, bencode.encode(payloadBFE))
   const payloadSignatureBFE = bfe.encodeBendyButt(payloadSignature)
 
-  const result = {
+  const msgVal = {
     previous,
     author: mfKeys.id,
     sequence,
@@ -98,17 +124,17 @@ function create(content, mfKeys, sfKeys, previous, sequence, timestamp, boxer) {
   }
 
   if (content.recps) {
-    Object.assign(result, {
+    Object.assign(msgVal, {
       content: contentSection,
     })
   } else {
-    Object.assign(result, {
+    Object.assign(msgVal, {
       content,
       contentSignature: bfe.decode(contentSignatureBFE),
     })
   }
 
-  return result
+  return msgVal
 }
 
 // msg must be a classic compatible msg
