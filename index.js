@@ -1,7 +1,5 @@
 const bencode = require('bencode')
 const ssbKeys = require('ssb-keys')
-const curve = require('ssb-keys/sodium')
-const u = require('ssb-keys/util')
 const bfe = require('ssb-bfe')
 
 function decodeBox2(box2) {
@@ -24,10 +22,10 @@ function decode(bmsg) {
   }
 
   if (Array.isArray(contentSection)) {
-    const [content, contentSignature] = contentSection
+    const [contentBFE, contentSignatureBFE] = contentSection
     Object.assign(result, {
-      content: bfe.decode(content),
-      contentSignature: bfe.decode(contentSignature),
+      content: bfe.decode(contentBFE),
+      contentSignature: bfe.decode(contentSignatureBFE),
     })
   }
   // box2
@@ -65,18 +63,16 @@ function encode(msg) {
 
 // returns a classic compatible json object
 function create(content, mfKeys, sfKeys, previous, sequence, timestamp, boxer) {
-  const convertedContent = bfe.encodeBendyButt(content)
-  const contentSignature = Buffer.concat([
-    Buffer.from([4, 0]), // FIXME: this module should not know about this detail
-    curve.sign(u.toBuffer(sfKeys.private), bencode.encode(convertedContent)),
-  ])
+  const contentBFE = bfe.encodeBendyButt(content)
+  const contentSignature = ssbKeys.sign(sfKeys, bencode.encode(contentBFE))
+  const contentSignatureBFE = bfe.encodeBendyButt(contentSignature)
 
-  let contentAndSignature = [convertedContent, contentSignature]
+  let contentSection = [contentBFE, contentSignatureBFE]
 
   if (content.recps)
-    contentAndSignature = boxer(
+    contentSection = boxer(
       bfe.encodeBendyButt(mfKeys.id),
-      bencode.encode(contentAndSignature),
+      bencode.encode(contentSection),
       bfe.encodeBendyButt(previous),
       content.recps
     )
@@ -86,31 +82,29 @@ function create(content, mfKeys, sfKeys, previous, sequence, timestamp, boxer) {
     sequence + 1,
     previous,
     timestamp,
-    contentAndSignature,
+    contentSection,
   ]
 
-  const convertedPayload = bfe.encodeBendyButt(payload)
-  const payloadSignature = Buffer.concat([
-    Buffer.from([4, 0]), // FIXME: this module should not know about this detail
-    curve.sign(u.toBuffer(mfKeys.private), bencode.encode(convertedPayload)),
-  ])
+  const payloadBFE = bfe.encodeBendyButt(payload)
+  const payloadSignature = ssbKeys.sign(mfKeys, bencode.encode(payloadBFE))
+  const payloadSignatureBFE = bfe.encodeBendyButt(payloadSignature)
 
   const result = {
     previous,
     author: mfKeys.id,
     sequence,
     timestamp,
-    signature: bfe.decode(payloadSignature),
+    signature: bfe.decode(payloadSignatureBFE),
   }
 
   if (content.recps) {
     Object.assign(result, {
-      content: contentAndSignature,
+      content: contentSection,
     })
   } else {
     Object.assign(result, {
       content,
-      contentSignature: bfe.decode(contentSignature),
+      contentSignature: bfe.decode(contentSignatureBFE),
     })
   }
 
