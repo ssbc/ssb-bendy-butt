@@ -70,7 +70,7 @@ tape('create', function (t) {
   t.equal(msg1.previous, null, 'previous correct')
   t.equal(msg1.author, mfKeys.id, 'author correct')
   t.equal(msg1.sequence, 1, 'sequence correct')
-  t.true(msg1.signature.startsWith('QOnqU6'), 'signature is correct')
+  t.equal(msg1.signature.substr(0, 6), 'QOnqU6', 'signature is correct')
 
   const indexKeys = {
     curve: 'ed25519',
@@ -96,7 +96,7 @@ tape('create', function (t) {
 
   t.equal(msg2.previous, msg1Hash)
   t.equal(msg2.sequence, 2, 'sequence correct')
-  t.true(msg2.signature.startsWith('bnHTeQW1'), 'signature is correct')
+  t.equal(msg2.signature.substr(0, 6), 'bnHTeQ', 'signature is correct')
 
   const msg2network = bb.decode(bb.encode(msg2))
   t.deepEqual(msg2, msg2network)
