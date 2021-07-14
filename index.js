@@ -7,6 +7,10 @@ function decodeBox2(box2) {
   return bfe.decode(decoded)
 }
 
+function isBoxedString(x) {
+  return typeof x === 'string' && x.endsWith('.box2')
+}
+
 /**
  * Decode a bendy-butt message into an object useful for ssb-db and ssb-db2.
  * Assumes the bendy-butt message has already been validated.
@@ -15,33 +19,26 @@ function decodeBox2(box2) {
  * @returns {Object} an object compatible with ssb/classic `msg.value`
  */
 function decode(bbmsg) {
-  const [payload, signature] = bencode.decode(bbmsg)
+  const msgBFE = bencode.decode(bbmsg)
+  const [payload, signature] = bfe.decode(msgBFE)
   const [author, sequence, previous, timestamp, contentSection] = payload
 
-  const result = {
-    previous: bfe.decode(previous),
-    author: bfe.decode(author),
-    sequence: bfe.decode(sequence),
-    timestamp: bfe.decode(timestamp),
-    signature: bfe.decode(signature),
+  const msgVal = {
+    author,
+    sequence,
+    previous,
+    timestamp,
+    signature,
+  }
+  if (isBoxedString(contentSection)) {
+    msgVal.content = contentSection
+  } else {
+    const [content, contentSignature] = contentSection
+    msgVal.content = content
+    msgVal.contentSignature = contentSignature
   }
 
-  if (Array.isArray(contentSection)) {
-    const [contentBFE, contentSignatureBFE] = contentSection
-    Object.assign(result, {
-      content: bfe.decode(contentBFE),
-      contentSignature: bfe.decode(contentSignatureBFE),
-    })
-  }
-  // box2
-  else {
-    const content = contentSection
-    Object.assign(result, {
-      content: bfe.decode(content),
-    })
-  }
-
-  return result
+  return msgVal
 }
 
 /**
@@ -51,24 +48,25 @@ function decode(bbmsg) {
  * @returns {Buffer} a bendy-butt message encoded with `bencode`
  */
 function encode(msgVal) {
-  const contentSection =
-    typeof msgVal.content === 'string' && msgVal.content.endsWith('.box2')
-      ? bfe.encodeBendyButt(msgVal.content)
-      : [
-          bfe.encodeBendyButt(msgVal.content),
-          bfe.encodeBendyButt(msgVal.contentSignature),
-        ]
+  const {
+    author,
+    sequence,
+    previous,
+    timestamp,
+    signature,
+    content,
+    contentSignature,
+  } = msgVal
 
-  return bencode.encode([
-    [
-      bfe.encodeBendyButt(msgVal.author),
-      bfe.encodeBendyButt(msgVal.sequence),
-      bfe.encodeBendyButt(msgVal.previous),
-      bfe.encodeBendyButt(msgVal.timestamp),
-      contentSection,
-    ],
-    bfe.encodeBendyButt(msgVal.signature),
-  ])
+  const contentSection = isBoxedString(content)
+    ? content
+    : [content, contentSignature]
+
+  const payload = [author, sequence, previous, timestamp, contentSection]
+
+  const msgBFE = bfe.encodeBendyButt([payload, signature])
+  const bbmsg = bencode.encode(msgBFE)
+  return bbmsg
 }
 
 /**
