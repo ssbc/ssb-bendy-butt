@@ -70,67 +70,73 @@ function encode(msgVal) {
 }
 
 /**
- * Creates a new bendy-butt message that can be appended to a bendy-butt feed.
+ * @callback Boxer
+ * @param {Buffer} bbAuthor author feed ID, encoded in `bencode` and BFE
+ * @param {Buffer} bbContentSection content-and-signature tuple, encoded in
+ * `bencode` and BFE
+ * @param {Buffer} bbPrevious previous message ID, encoded in `bencode` and BFE
+ * @param {Array} recps an Array of recipient IDs
+ * @returns {string} a ciphertext (i.e. "boxed") string, suffixed with `.box2`
+ */
+
+/**
  *
- * FIXME: this method does not seem to belong to `ssb-bendy-butt` because it is
- * aware of the metafeed spec (requiring mfKeys and sfKeys). Perhaps this should
- * be moved to `ssb-meta-feeds`?
- *
- * @param {Object} content an arbitrary object comprising the message contents
- * @param {import('ssb-keys').Keys} mfKeys the keys object of the metafeed
- * @param {import('ssb-keys').Keys} sfKeys the keys object for the subfeed
+ * @param {Object} content an arbitrary object content the message contents
+ * @param {import('ssb-keys').Keys | null} contentKeys the keys object of the
+ * author to use for signing the content. May be different from `keys`.
+ * @param {import('ssb-keys').Keys} keys the keys object of the author, to use
+ * for signing the payload.
+ * @param {number} sequence sequence number of the new msg to be created
  * @param {string | null} previous msg ID of the previous bendy-butt msg in the
  * feed
- * @param {number} sequence sequence number of the new msg to be created
  * @param {number} timestamp timestamp for the new msg to be created
- * @param {function | undefined} boxer function to encrypt the contents
- * @returns {Object} an object compatible with ssb/classic `msg.value`
+ * @param {Boxer | undefined} boxer function to encrypt the contents
+ * @returns {Buffer} a bendy-butt message encoded with `bencode`
  */
-function create(content, mfKeys, sfKeys, previous, sequence, timestamp, boxer) {
-  const author = mfKeys.id
+function encodeNew(
+  content,
+  contentKeys,
+  keys,
+  sequence,
+  previous,
+  timestamp,
+  boxer
+) {
+  const author = keys.id
   const contentBFE = bfe.encode(content)
-  const contentSignature = ssbKeys.sign(sfKeys, bencode.encode(contentBFE))
+  const contentSignature = ssbKeys.sign(
+    contentKeys || keys,
+    bencode.encode(contentBFE)
+  )
   const contentSignatureBFE = bfe.encode(contentSignature)
 
   let contentSection = [contentBFE, contentSignatureBFE]
-
-  if (content.recps)
+  if (content.recps) {
     contentSection = boxer(
       bfe.encode(author),
       bencode.encode(contentSection),
       bfe.encode(previous),
       content.recps
     )
+  }
 
   const payload = [author, sequence, previous, timestamp, contentSection]
   const payloadBFE = bfe.encode(payload)
-  const signature = ssbKeys.sign(mfKeys, bencode.encode(payloadBFE))
+  const signature = ssbKeys.sign(keys, bencode.encode(payloadBFE))
 
-  const msgVal = {
-    author,
-    sequence,
-    previous,
-    timestamp,
-    signature,
-  }
-
-  if (content.recps) {
-    Object.assign(msgVal, {
-      content: contentSection,
-    })
-  } else {
-    Object.assign(msgVal, {
-      content,
-      contentSignature: bfe.decode(contentSignatureBFE),
-    })
-  }
-
-  return msgVal
+  const msgBFE = bfe.encode([payloadBFE, signature])
+  const bbmsg = bencode.encode(msgBFE)
+  return bbmsg
 }
 
-// msg must be a classic compatible msg
-function hash(msg) {
-  return '%' + ssbKeys.hash(encode(msg)).replace('.sha256', '.bbmsg-v1')
+/**
+ * Calculate the message key for the given "msg value".
+ *
+ * @param {Object} msgVal an object compatible with ssb/classic `msg.value`
+ * @returns {string} a sigil-based string uniquely identifying the `msgVal`
+ */
+function hash(msgVal) {
+  return '%' + ssbKeys.hash(encode(msgVal)).replace('.sha256', '.bbmsg-v1')
 }
 
 // FIXME: might split this out and add validateBatch
@@ -140,6 +146,6 @@ module.exports = {
   decodeBox2,
   decode,
   encode,
-  create,
+  encodeNew,
   hash,
 }

@@ -35,7 +35,7 @@ tape('encode/decode works', function (t) {
   t.end()
 })
 
-tape('create', function (t) {
+tape('encodeNew', function (t) {
   const mfKeys = {
     curve: 'ed25519',
     public: 'XCesbvDN+9D4momhtlo2BHejPsect6sUzZB2JVm+4v8=.ed25519',
@@ -64,13 +64,17 @@ tape('create', function (t) {
     },
   }
 
-  const msg1 = bb.create(mainContent, mfKeys, mainKeys, null, 1, 12345)
-  const msg1Hash = bb.hash(msg1)
+  const bbmsg1 = bb.encodeNew(mainContent, mainKeys, mfKeys, 1, null, 12345)
+  const msgVal1 = bb.decode(bbmsg1)
+  const msg1ID = bb.hash(msgVal1)
 
-  t.equal(msg1.previous, null, 'previous correct')
-  t.equal(msg1.author, mfKeys.id, 'author correct')
-  t.equal(msg1.sequence, 1, 'sequence correct')
-  t.equal(msg1.signature.substr(0, 6), 'sJYn08', 'signature is correct')
+  t.equal(msgVal1.author, mfKeys.id, 'author is correct')
+  t.equal(msgVal1.sequence, 1, 'sequence is correct')
+  t.equal(msgVal1.previous, null, 'previous is correct')
+  t.equal(msgVal1.timestamp, 12345, 'timestamp is correct')
+  t.equal(msgVal1.signature.substr(0, 6), 'sJYn08', 'signature is correct')
+  t.deepEquals(msgVal1.content, mainContent, 'content is correct')
+  t.equal(msgVal1.contentSignature.substr(0, 6), 'fglSbg', 'contentSignature')
 
   const indexKeys = {
     curve: 'ed25519',
@@ -92,14 +96,19 @@ tape('create', function (t) {
     },
   }
 
-  const msg2 = bb.create(indexContent, mfKeys, indexKeys, msg1Hash, 2, 23456)
+  const bbmsg2 = bb.encodeNew(indexContent, indexKeys, mfKeys, 2, msg1ID, 23456)
+  const msgVal2 = bb.decode(bbmsg2)
 
-  t.equal(msg2.previous, msg1Hash)
-  t.equal(msg2.sequence, 2, 'sequence correct')
-  t.equal(msg2.signature.substr(0, 6), 'Vsw6a1', 'signature is correct')
+  t.equal(msgVal2.author, mfKeys.id, 'author is correct')
+  t.equal(msgVal2.sequence, 2, 'sequence is correct')
+  t.equal(msgVal2.previous, msg1ID, 'previous is correct')
+  t.equal(msgVal2.timestamp, 23456, 'timestamp is correct')
+  t.equal(msgVal2.signature.substr(0, 6), 'Vsw6a1', 'signature is correct')
+  t.deepEquals(msgVal2.content, indexContent, 'content is correct')
+  t.equal(msgVal2.contentSignature.substr(0, 6), 'gpw1OF', 'contentSignature')
 
-  const msg2network = bb.decode(bb.encode(msg2))
-  t.deepEqual(msg2, msg2network)
+  const msgVal2network = bb.decode(bb.encode(msgVal2))
+  t.deepEqual(msgVal2, msgVal2network)
 
   t.end()
 })
