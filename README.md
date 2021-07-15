@@ -1,25 +1,40 @@
-# SSB meta feeds feed format
+# SSB Bendy Butt
 
 Implementation of [bendy butt] in JS
 
-## api
+## API
 
 ### decode(bbmsg)
 
-Takes a bencoded message and returns a classic compatible json object
+Takes a bencoded message and returns an object compatible with the shape of
+`msg.value` under classic SSB feeds.
 
-### encode(msg)
+### encode(msgVal)
 
-Takes a json message value and returns bencoded message buffer
+Takes an object compatible with the shape of `msg.value` under classic SSB feeds
+and returns a bencoded message Buffer.
 
-### create(content, mfKeys, sfKeys, previous, sequence, timestamp, boxer)
+### encodeNew(content, contentKeys, keys, sequence, previousMsgId, timestamp, boxer)
 
-Takes a content json object, meta feed keys, sub feed keys, the
-previous message key on the meta feed or null, the next sequence
-number and a timestamp and returns a classic compatible json
-object. Lastly it takes an boxer function of form (encodedAuthor,
-encodedContent, encodedPrevious, recps) => string (.box2). The encoded
-parts must be in BFE form and recps must be the ids of the recipients.
+Creates a bencoded message Buffer for a new message to be appended to the bendy
+butt feed owned by the author identified by `keys`.
+
+Takes an arbitrary `content` object and an (optional) `contentKeys` which is
+used to sign the content. If `contentKeys` is missing, the signature will be
+done using `keys` instead. The other arguments comprise the metadata section of
+the bendy-butt message, i.e. `author` (deduced from `keys`), `sequence`,
+`previousMsgId` and `timestamp`.
+
+Finally, if the new message is meant to be encrypted to some recipients
+(determined by `content.recps`, an array of feed IDs), then `encodeNew` needs a
+`boxer` function of type `(bbAuthor, bbContentSection, bbPreviousMsgId, recps) => string (.box2)`.
+The arguments `bbAuthor`, `bbContentSection` and `bbPreviousMsgId` must be
+encoded in `bencode` and BFE, and `recps` is the array of recipient IDs.
+
+### hash(msgVal)
+
+Calculate the message key (as a sigil-based string) for the given "msg value"
+(an object with the shape `msg.value` as known in classic SSB feeds).
 
 ### decodeBox2(decryptedBox2)
 
