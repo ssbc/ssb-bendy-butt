@@ -2,6 +2,8 @@ const bencode = require('bencode')
 const ssbKeys = require('ssb-keys')
 const bfe = require('ssb-bfe')
 
+const CONTENT_SIG_PREFIX = Buffer.from('metafeeds', 'utf8')
+
 function decodeBox2(box2) {
   const decoded = bencode.decode(box2)
   return bfe.decode(decoded)
@@ -106,7 +108,7 @@ function encodeNew(
   const contentBFE = bfe.encode(content)
   const contentSignature = ssbKeys.sign(
     contentKeys || keys,
-    bencode.encode(contentBFE)
+    Buffer.concat([CONTENT_SIG_PREFIX, bencode.encode(contentBFE)])
   )
   const contentSignatureBFE = bfe.encode(contentSignature)
 
