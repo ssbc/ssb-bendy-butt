@@ -103,13 +103,7 @@ function create(content, mfKeys, sfKeys, previous, sequence, timestamp, boxer) {
       content.recps
     )
 
-  const payload = [
-    mfKeys.public,
-    sequence + 1,
-    previous,
-    timestamp,
-    contentSection,
-  ]
+  const payload = [mfKeys.public, sequence, previous, timestamp, contentSection]
 
   const payloadBFE = bfe.encodeBendyButt(payload)
   const payloadSignature = ssbKeys.sign(mfKeys, bencode.encode(payloadBFE))
