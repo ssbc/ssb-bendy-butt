@@ -6,6 +6,15 @@
       "HexString": "7365633073656330736563307365633073656330736563307365633073656330"
     },
     {
+      "Name": "ssb-keys object for the Metafeed",
+      "Keys": {
+        "curve": "ed25519",
+        "public": "TuD7hkArcXo7xIQP4R9zAbjfRKNlmHrDoTXsDgVJ9wQ=.ed25519",
+        "private": "gEh365wVH1NOINhdAFAStXPHKboYWmfFUpQxDR0FJsZO4PuGQCtxejvEhA/hH3MBuN9Eo2WYesOhNewOBUn3BA==.ed25519",
+        "id": "@TuD7hkArcXo7xIQP4R9zAbjfRKNlmHrDoTXsDgVJ9wQ=.bbfeed-v1"
+      }
+    },
+    {
       "Name": "subfeed1 nonce",
       "HexString": "2323232323232323232323232323232323232323232323232323232323232323"
     },
@@ -14,12 +23,30 @@
       "Feed": "@XWQputsvDZ/ZLvNAHPRsTMG/01neaZ0c3twDMOT5p+A=.ed25519"
     },
     {
+      "Name": "ssb-keys object for the subfeed1",
+      "Keys": {
+        "curve": "ed25519",
+        "public": "XWQputsvDZ/ZLvNAHPRsTMG/01neaZ0c3twDMOT5p+A=.ed25519",
+        "private": "bmb3la62F+/U7p/s6eYfSV1SheaTH9g/bXvS2ReK1bxdZCm62y8Nn9ku80Ac9GxMwb/TWd5pnRze3AMw5Pmn4A==.ed25519",
+        "id": "@XWQputsvDZ/ZLvNAHPRsTMG/01neaZ0c3twDMOT5p+A=.ed25519"
+      }
+    },
+    {
       "Name": "subfeed2 nonce",
       "HexString": "4242424242424242424242424242424242424242424242424242424242424242"
     },
     {
       "Name": "subfeed2 author",
       "Feed": "@xQrDhN1BG0ozoCeH+So6X6MMI5pTmr0hz8jHlU/BUXA=.ggfeed-v1"
+    },
+    {
+      "Name": "ssb-keys object for the subfeed2",
+      "Keys": {
+        "curve": "ed25519",
+        "public": "xQrDhN1BG0ozoCeH+So6X6MMI5pTmr0hz8jHlU/BUXA=.ed25519",
+        "private": "kKBJuzmVHDRXqZUKireE3yG2B//losfd8qIm01H9///FCsOE3UEbSjOgJ4f5KjpfowwjmlOavSHPyMeVT8FRcA==.ed25519",
+        "id": "@xQrDhN1BG0ozoCeH+So6X6MMI5pTmr0hz8jHlU/BUXA=.ed25519"
+      }
     }
   ],
   "Entries": [

@@ -28,15 +28,37 @@ function entryToMsgValue(entry) {
 }
 
 tape('vector', function (t) {
+  const getKeys = (obj) => obj.Keys
+  const [mfKeys, sf1Keys, sf2Keys] = vec.Metadata.filter(getKeys).map(getKeys)
+
   vec.Entries.forEach((entry) => {
-    const msgExtracted = entryToMsgValue(entry)
-    const encoded = bb.encode(msgExtracted)
+    const vecMsgVal = entryToMsgValue(entry)
+    const encodedVecMsgVal = bb.encode(vecMsgVal)
+    const vecEncoded = entry.EncodedData
 
-    const jsonEncodeDecode = bb.decode(encoded)
-    const decode = bb.decode(Buffer.from(entry.EncodedData, 'hex'))
+    t.deepEqual(encodedVecMsgVal.toString('hex'), vecEncoded, 'encode works')
 
-    t.deepEqual(jsonEncodeDecode, decode, 'decode work')
-    t.deepEqual(encoded.toString('hex'), entry.EncodedData, 'encode work')
+    const decodedEncodedVecMsgVal = bb.decode(encodedVecMsgVal)
+    const decoded = bb.decode(Buffer.from(entry.EncodedData, 'hex'))
+
+    t.deepEqual(decodedEncodedVecMsgVal, decoded, 'decode works')
+
+    const sfKeys = vecMsgVal.content.subfeed === sf1Keys.id ? sf1Keys : sf2Keys
+    const bbmsg = bb.encodeNew(
+      vecMsgVal.content,
+      sfKeys,
+      mfKeys,
+      vecMsgVal.sequence,
+      vecMsgVal.previous,
+      vecMsgVal.timestamp
+    )
+    const rebuiltMsgVal = bb.decode(bbmsg)
+
+    t.equals(
+      rebuiltMsgVal.contentSignature,
+      vecMsgVal.contentSignature,
+      'encodeNew works'
+    )
   })
 
   t.end()
