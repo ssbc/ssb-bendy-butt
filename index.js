@@ -64,7 +64,7 @@ function encode(msgVal) {
 
   const payload = [author, sequence, previous, timestamp, contentSection]
 
-  const msgBFE = bfe.encodeBendyButt([payload, signature])
+  const msgBFE = bfe.encode([payload, signature])
   const bbmsg = bencode.encode(msgBFE)
   return bbmsg
 }
@@ -87,25 +87,25 @@ function encode(msgVal) {
  * @returns {Object} an object compatible with ssb/classic `msg.value`
  */
 function create(content, mfKeys, sfKeys, previous, sequence, timestamp, boxer) {
-  const contentBFE = bfe.encodeBendyButt(content)
+  const contentBFE = bfe.encode(content)
   const contentSignature = ssbKeys.sign(sfKeys, bencode.encode(contentBFE))
-  const contentSignatureBFE = bfe.encodeBendyButt(contentSignature)
+  const contentSignatureBFE = bfe.encode(contentSignature)
 
   let contentSection = [contentBFE, contentSignatureBFE]
 
   if (content.recps)
     contentSection = boxer(
-      bfe.encodeBendyButt(mfKeys.id),
+      bfe.encode(mfKeys.id),
       bencode.encode(contentSection),
-      bfe.encodeBendyButt(previous),
+      bfe.encode(previous),
       content.recps
     )
 
   const payload = [mfKeys.public, sequence, previous, timestamp, contentSection]
 
-  const payloadBFE = bfe.encodeBendyButt(payload)
+  const payloadBFE = bfe.encode(payload)
   const payloadSignature = ssbKeys.sign(mfKeys, bencode.encode(payloadBFE))
-  const payloadSignatureBFE = bfe.encodeBendyButt(payloadSignature)
+  const payloadSignatureBFE = bfe.encode(payloadSignature)
 
   const msgVal = {
     previous,
