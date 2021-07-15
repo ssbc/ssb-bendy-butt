@@ -64,7 +64,7 @@ function encode(msgVal) {
 
   const payload = [author, sequence, previous, timestamp, contentSection]
 
-  const msgBFE = bfe.encodeBendyButt([payload, signature])
+  const msgBFE = bfe.encode([payload, signature])
   const bbmsg = bencode.encode(msgBFE)
   return bbmsg
 }
@@ -88,22 +88,22 @@ function encode(msgVal) {
  */
 function create(content, mfKeys, sfKeys, previous, sequence, timestamp, boxer) {
   const author = mfKeys.id
-  const contentBFE = bfe.encodeBendyButt(content)
+  const contentBFE = bfe.encode(content)
   const contentSignature = ssbKeys.sign(sfKeys, bencode.encode(contentBFE))
-  const contentSignatureBFE = bfe.encodeBendyButt(contentSignature)
+  const contentSignatureBFE = bfe.encode(contentSignature)
 
   let contentSection = [contentBFE, contentSignatureBFE]
 
   if (content.recps)
     contentSection = boxer(
-      bfe.encodeBendyButt(author),
+      bfe.encode(author),
       bencode.encode(contentSection),
-      bfe.encodeBendyButt(previous),
+      bfe.encode(previous),
       content.recps
     )
 
   const payload = [author, sequence, previous, timestamp, contentSection]
-  const payloadBFE = bfe.encodeBendyButt(payload)
+  const payloadBFE = bfe.encode(payload)
   const signature = ssbKeys.sign(mfKeys, bencode.encode(payloadBFE))
 
   const msgVal = {
