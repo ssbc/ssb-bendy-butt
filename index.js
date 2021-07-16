@@ -2,7 +2,7 @@ const bencode = require('bencode')
 const ssbKeys = require('ssb-keys')
 const bfe = require('ssb-bfe')
 
-const CONTENT_SIG_PREFIX = Buffer.from('metafeeds', 'utf8')
+const CONTENT_SIG_PREFIX = Buffer.from('bendybutt', 'utf8')
 
 function decodeBox2(box2) {
   const decoded = bencode.decode(box2)

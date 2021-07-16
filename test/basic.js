@@ -72,9 +72,9 @@ tape('encodeNew', function (t) {
   t.equal(msgVal1.sequence, 1, 'sequence is correct')
   t.equal(msgVal1.previous, null, 'previous is correct')
   t.equal(msgVal1.timestamp, 12345, 'timestamp is correct')
-  t.equal(msgVal1.signature.substr(0, 6), 'umClVs', 'signature is correct')
+  t.equal(msgVal1.signature.substr(0, 6), 'NQQ7Su', 'signature is correct')
   t.deepEquals(msgVal1.content, mainContent, 'content is correct')
-  t.equal(msgVal1.contentSignature.substr(0, 6), '69Ft3c', 'contentSignature')
+  t.equal(msgVal1.contentSignature.substr(0, 6), 'Uazrl3', 'contentSignature')
 
   const indexKeys = {
     curve: 'ed25519',
@@ -103,9 +103,9 @@ tape('encodeNew', function (t) {
   t.equal(msgVal2.sequence, 2, 'sequence is correct')
   t.equal(msgVal2.previous, msg1ID, 'previous is correct')
   t.equal(msgVal2.timestamp, 23456, 'timestamp is correct')
-  t.equal(msgVal2.signature.substr(0, 6), 'ZsC574', 'signature is correct')
+  t.equal(msgVal2.signature.substr(0, 6), 'yTB/CZ', 'signature is correct')
   t.deepEquals(msgVal2.content, indexContent, 'content is correct')
-  t.equal(msgVal2.contentSignature.substr(0, 6), 'Pb+aj+', 'contentSignature')
+  t.equal(msgVal2.contentSignature.substr(0, 6), 'FNA0Q8', 'contentSignature')
 
   const msgVal2network = bb.decode(bb.encode(msgVal2))
   t.deepEqual(msgVal2, msgVal2network)
