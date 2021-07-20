@@ -1,6 +1,7 @@
 const tape = require('tape')
 const fs = require('fs')
 const bfe = require('ssb-bfe')
+const { deriveFeedKeyFromSeed } = require('ssb-meta-feeds/keys')
 const bb = require('../')
 
 const vec = JSON.parse(
@@ -28,8 +29,21 @@ function entryToMsgValue(entry) {
 }
 
 tape('vector', function (t) {
-  const getKeys = (obj) => obj.Keys
-  const [mfKeys, sf1Keys, sf2Keys] = vec.Metadata.filter(getKeys).map(getKeys)
+  const getHex = (obj) => obj.HexString
+  const [mfHex, sf1Hex, sf2Hex] = vec.Metadata.filter(getHex).map(getHex)
+  const mfKeys = deriveFeedKeyFromSeed(
+    Buffer.from(mfHex, 'hex'),
+    'testfeed',
+    'bendy butt'
+  )
+  const sf1Keys = deriveFeedKeyFromSeed(
+    Buffer.from(mfHex, 'hex'),
+    Buffer.from(sf1Hex, 'hex').toString('base64')
+  )
+  const sf2Keys = deriveFeedKeyFromSeed(
+    Buffer.from(mfHex, 'hex'),
+    Buffer.from(sf2Hex, 'hex').toString('base64')
+  )
 
   vec.Entries.forEach((entry) => {
     const vecMsgVal = entryToMsgValue(entry)

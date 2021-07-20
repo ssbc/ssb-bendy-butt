@@ -21,6 +21,7 @@
     "secret-stack": "^6.4.0",
     "ssb-caps": "^1.1.0",
     "ssb-db2": "^2.1.2",
+    "ssb-meta-feeds": "~0.11.0",
     "tap-bail": "^1.0.0",
     "tap-spec": "^5.0.0",
     "tape": "^5.2.2"
