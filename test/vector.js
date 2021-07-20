@@ -28,8 +28,10 @@ function entryToMsgValue(entry) {
 }
 
 tape('vector', function (t) {
+  /* TODO: use seed to derive keys
   const getKeys = (obj) => obj.Keys
   const [mfKeys, sf1Keys, sf2Keys] = vec.Metadata.filter(getKeys).map(getKeys)
+  */
 
   vec.Entries.forEach((entry) => {
     const vecMsgVal = entryToMsgValue(entry)
@@ -54,12 +56,11 @@ tape('vector', function (t) {
     )
     const rebuiltMsgVal = bb.decode(bbmsg)
 
-    // FIXME: pending on test vectors being updated with inputPrefix=bendybutt
-    // t.equals(
-    //   rebuiltMsgVal.contentSignature,
-    //   vecMsgVal.contentSignature,
-    //   'encodeNew works'
-    // )
+    t.equals(
+      rebuiltMsgVal.contentSignature,
+      vecMsgVal.contentSignature,
+      'encodeNew works'
+    )
   })
 
   t.end()
