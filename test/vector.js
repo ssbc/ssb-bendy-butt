@@ -68,11 +68,7 @@ tape('vector', function (t) {
     )
     const rebuiltMsgVal = bb.decode(bbmsg)
 
-    t.equals(
-      rebuiltMsgVal.contentSignature,
-      vecMsgVal.contentSignature,
-      'encodeNew works'
-    )
+    t.deepEquals(vecMsgVal, rebuiltMsgVal, 'encodeNew works')
   })
 
   t.end()
