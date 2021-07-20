@@ -28,10 +28,8 @@ function entryToMsgValue(entry) {
 }
 
 tape('vector', function (t) {
-  /* TODO: use seed to derive keys
   const getKeys = (obj) => obj.Keys
   const [mfKeys, sf1Keys, sf2Keys] = vec.Metadata.filter(getKeys).map(getKeys)
-  */
 
   vec.Entries.forEach((entry) => {
     const vecMsgVal = entryToMsgValue(entry)

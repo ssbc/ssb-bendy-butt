@@ -2,12 +2,30 @@
   "Description": "A bunch of metafeed related messages with double signed posts. Two feeds get added and one of them gets revoked/tombstoned",
   "Metadata": [
     {
+      "Name": "Metafeed keys object generated with label='testfeed'",
+      "Keys": {
+        "curve": "ed25519",
+        "public": "b99R2e7lj8h7NFqGhOu6lCGy8gLxWV+J4ORd1X7rP3c=.ed25519",
+        "private": "+nJY4LSuErmLtUPmDw+eJEFTStHN43AcoWodx/1HwnBv31HZ7uWPyHs0WoaE67qUIbLyAvFZX4ng5F3Vfus/dw==.ed25519",
+        "id": "@b99R2e7lj8h7NFqGhOu6lCGy8gLxWV+J4ORd1X7rP3c=.bbfeed-v1"
+      }
+    },
+    {
       "Name": "Seed for Metafeed KeyPair",
       "HexString": "7365633073656330736563307365633073656330736563307365633073656330"
     },
     {
       "Name": "subfeed1 nonce",
       "HexString": "2323232323232323232323232323232323232323232323232323232323232323"
+    },
+    {
+      "Name": "Keys object for subfeed1",
+      "Keys": {
+        "curve": "ed25519",
+        "public": "Oo6OYCGsjLP3n+cep4FiHJJZGHyqKWztnhDk7vJhi3A=.ed25519",
+        "private": "CtoXZ+5TtpdpIg+c87pb2WlGs5c7RxnkMnlthDc0y106jo5gIayMs/ef5x6ngWIcklkYfKopbO2eEOTu8mGLcA==.ed25519",
+        "id": "@Oo6OYCGsjLP3n+cep4FiHJJZGHyqKWztnhDk7vJhi3A=.ed25519"
+      }
     },
     {
       "Name": "subfeed1 author",
@@ -20,6 +38,15 @@
     {
       "Name": "subfeed2 author",
       "Feed": "@FY5OG311W4j/KPh8H9B2MZt4WSziy/p+ABkKERJdujQ=.ggfeed-v1"
+    },
+    {
+      "Name": "Keys object for subfeed2",
+      "Keys": {
+        "curve": "ed25519",
+        "public": "FY5OG311W4j/KPh8H9B2MZt4WSziy/p+ABkKERJdujQ=.ed25519",
+        "private": "lHYVYYoDc8UNI/kVBiRv73TqgD4eM+f3anlx67xa2IgVjk4bfXVbiP8o+Hwf0HYxm3hZLOLL+n4AGQoREl26NA==.ed25519",
+        "id": "@FY5OG311W4j/KPh8H9B2MZt4WSziy/p+ABkKERJdujQ=.ed25519"
+      }
     }
   ],
   "Entries": [
