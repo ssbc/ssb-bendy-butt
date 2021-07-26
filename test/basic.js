@@ -1,4 +1,5 @@
 const tape = require('tape')
+const crypto = require('crypto')
 const bb = require('../')
 
 tape('encode/decode works', function (t) {
@@ -109,6 +110,40 @@ tape('encodeNew', function (t) {
 
   const msgVal2network = bb.decode(bb.encode(msgVal2))
   t.deepEqual(msgVal2, msgVal2network)
+
+  const hmacKey = Buffer.from(
+    '6jAQ1AdRCabUHV+e7tVRUuYrwr1AcCmidB1AhMyGM60=',
+    'base64'
+  )
+
+  const bbmsg3 = bb.encodeNew(
+    mainContent,
+    mainKeys,
+    mfKeys,
+    1,
+    null,
+    12345,
+    hmacKey
+  )
+  const msgVal3 = bb.decode(bbmsg3)
+  const msg3ID = bb.hash(msgVal3)
+
+  t.equal(msgVal3.author, mfKeys.id, 'author is correct')
+  t.equal(msgVal3.sequence, 1, 'sequence is correct')
+  t.equal(msgVal3.previous, null, 'previous is correct')
+  t.equal(msgVal3.timestamp, 12345, 'timestamp is correct')
+  t.equal(msgVal3.signature.substr(0, 6), 'Uzsnm5', 'signature is correct')
+  t.notEqual(
+    msgVal1.signature,
+    msgVal3.signature,
+    'hmac signature is different'
+  )
+  t.deepEquals(msgVal3.content, mainContent, 'content is correct')
+  t.notEqual(
+    msgVal1.contentSignature,
+    msgVal3.contentSignature,
+    'hmac contentSignature is different'
+  )
 
   t.end()
 })

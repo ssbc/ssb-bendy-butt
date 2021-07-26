@@ -91,7 +91,8 @@ function encode(msgVal) {
  * @param {number} sequence sequence number of the new msg to be created
  * @param {string | null} previous msg ID of the previous bendy-butt msg in the
  * feed
- * @param {number} timestamp timestamp for the new msg to be created
+ * @param {number} timestamp when the message was created
+ * @param {Buffer | null} hmacKey hmac key for signatures
  * @param {Boxer | undefined} boxer function to encrypt the contents
  * @returns {Buffer} a bendy-butt message encoded with `bencode`
  */
@@ -102,12 +103,14 @@ function encodeNew(
   sequence,
   previous,
   timestamp,
+  hmacKey,
   boxer
 ) {
   const author = keys.id
   const contentBFE = bfe.encode(content)
   const contentSignature = ssbKeys.sign(
     contentKeys || keys,
+    hmacKey,
     Buffer.concat([CONTENT_SIG_PREFIX, bencode.encode(contentBFE)])
   )
   const contentSignatureBFE = bfe.encode(contentSignature)
@@ -124,7 +127,7 @@ function encodeNew(
 
   const payload = [author, sequence, previous, timestamp, contentSection]
   const payloadBFE = bfe.encode(payload)
-  const signature = ssbKeys.sign(keys, bencode.encode(payloadBFE))
+  const signature = ssbKeys.sign(keys, hmacKey, bencode.encode(payloadBFE))
 
   const msgBFE = bfe.encode([payloadBFE, signature])
   const bbmsg = bencode.encode(msgBFE)
