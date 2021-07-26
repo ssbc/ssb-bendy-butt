@@ -14,7 +14,7 @@ Takes a bencoded message and returns an object compatible with the shape of
 Takes an object compatible with the shape of `msg.value` under classic SSB feeds
 and returns a bencoded message Buffer.
 
-### encodeNew(content, contentKeys, keys, sequence, previousMsgId, timestamp, boxer)
+### encodeNew(content, contentKeys, keys, sequence, previousMsgId, timestamp, hmacKey?, boxer?)
 
 Creates a bencoded message Buffer for a new message to be appended to the bendy
 butt feed owned by the author identified by `keys`.
