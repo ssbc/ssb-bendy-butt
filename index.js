@@ -144,8 +144,126 @@ function hash(msgVal) {
   return '%' + ssbKeys.hash(encode(msgVal)).replace('.sha256', '.bbmsg-v1')
 }
 
-// FIXME: might split this out and add validateBatch
-function validateSingle(bmsg, previous) {}
+/**
+ * Decode a bendy-butt message into an object useful for ssb-db and ssb-db2.
+ * Performs message validation before returning the decoded message object.
+ *
+ * @param {Buffer} bbmsg a bendy-butt message encoded with `bencode`
+ * @returns {Object} an object compatible with ssb/classic `msg.value` or an `Error`
+ */
+function decodeAndValidateSingle(bbmsg, previousMsg, hmacKey) {
+  if (bbmsg.length > 8192)
+    return new Error('invalid message: length must not exceed 8192 bytes')
+
+  const msgBFE = bencode.decode(bbmsg)
+
+  if (!Array.isArray(msgBFE) || msgBFE.length != 2)
+    return new Error('invalid message: must be a list of payload and signature')
+
+  const [payload, signature] = bfe.decode(msgBFE)
+
+  if (!Array.isArray(payload) || payload.length != 5)
+    return new Error(
+      'invalid payload: must be a list of author, sequence, previous, timestamp and contentSection'
+    )
+
+  const signatureErr = validateSignature(payload, signature, hmacKey)
+  if (signatureErr) return signatureErr
+
+  const typeFormatErr = validateTypeFormat(msgBFE)
+  if (typeFormatErr) return typeFormatErr
+
+  const [author, sequence, previous, timestamp, contentSection] = payload
+
+  const previousErr = validatePrevious(author, sequence, previous, previousMsg)
+  if (previousErr) return previousErr
+
+  const msgVal = {
+    author,
+    sequence,
+    previous,
+    timestamp,
+    signature,
+  }
+  if (isBoxedString(contentSection)) {
+    msgVal.content = contentSection
+  } else {
+    const [content, contentSignature] = contentSection
+    msgVal.content = content
+    msgVal.contentSignature = contentSignature
+  }
+
+  return msgVal
+}
+
+function validateSignature(payload, signature, hmacKey) {
+  const hmacKeyErr = validateHmacKey(hmacKey)
+  if (hmacKeyErr) return hmacKeyErr
+
+  if (!ssbKeys.verifyObj(signature, hmacKey, payload))
+    return new Error(
+      'invalid message: signature must correctly sign the payload'
+    )
+}
+
+function validatePrevious(author, sequence, previous, previousMsg) {
+  if (sequence === 1) {
+    if (previous != null)
+      return new Error(
+        'invalid message: message must have a previous value of null if sequence is 1'
+      )
+  } else {
+    if (!previousMsg)
+      return new Error(
+        'invalid previousMsg: value must not be undefined if sequence > 1'
+      )
+    if (author != previousMsg[0])
+      return new Error(
+        'invalid message: author must be the same for the current and previous messages'
+      )
+
+    const previousHash = hash(previousMsg)
+    if (previous != previousHash)
+      return new Error(
+        'invalid message: expected different previous message on feed'
+      )
+  }
+}
+
+function validateTypeFormat(msgBFE) {
+  if (msgBFE[0][0].slice(0, 2).toString('hex') != '0003')
+    return new Error(
+      'invalid message: author value must have the correct type-format'
+    )
+
+  if (msgBFE[0][1] === 1) {
+    if (msgBFE[0][2].slice(0, 2).toString('hex') != '0602')
+      return new Error(
+        'invalid message: previous value must have the nil type-format if sequence is 1'
+      )
+  } else {
+    if (msgBFE[0][2].slice(0, 2).toString('hex') != '0104')
+      return new Error(
+        'invalid message: previous value must have the correct type-format'
+      )
+  }
+}
+
+function validateHmacKey(hmacKey) {
+  if (hmacKey === undefined || hmacKey === null) return false
+
+  const bytes = Buffer.isBuffer(hmacKey)
+    ? hmacKey
+    : Buffer.from(hmacKey, 'base64')
+
+  if (typeof hmacKey === 'string') {
+    if (bytes.toString('base64') !== hmacKey)
+      return new Error('invalid hmac key: string must be base64 encoded')
+  }
+
+  if (bytes.length !== 32)
+    return new Error('invalid hmac key: must have a length of 32 bytes')
+}
 
 module.exports = {
   decodeBox2,
@@ -153,4 +271,5 @@ module.exports = {
   encode,
   encodeNew,
   hash,
+  decodeAndValidateSingle,
 }
