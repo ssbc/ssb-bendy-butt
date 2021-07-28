@@ -157,12 +157,12 @@ function decodeAndValidateSingle(bbmsg, previousMsg, hmacKey) {
 
   const msgBFE = bencode.decode(bbmsg)
 
-  if (!Array.isArray(msgBFE) || msgBFE.length != 2)
+  if (!Array.isArray(msgBFE) || msgBFE.length !== 2)
     return new Error('invalid message: must be a list of payload and signature')
 
   const [payload, signature] = bfe.decode(msgBFE)
 
-  if (!Array.isArray(payload) || payload.length != 5)
+  if (!Array.isArray(payload) || payload.length !== 5)
     return new Error(
       'invalid payload: must be a list of author, sequence, previous, timestamp and contentSection'
     )
@@ -208,7 +208,7 @@ function validateSignature(payload, signature, hmacKey) {
 
 function validatePrevious(author, sequence, previous, previousMsg) {
   if (sequence === 1) {
-    if (previous != null)
+    if (previous !== null)
       return new Error(
         'invalid message: message must have a previous value of null if sequence is 1'
       )
@@ -217,13 +217,13 @@ function validatePrevious(author, sequence, previous, previousMsg) {
       return new Error(
         'invalid previousMsg: value must not be undefined if sequence > 1'
       )
-    if (author != previousMsg[0])
+    if (author !== previousMsg[0])
       return new Error(
         'invalid message: author must be the same for the current and previous messages'
       )
 
     const previousHash = hash(previousMsg)
-    if (previous != previousHash)
+    if (previous !== previousHash)
       return new Error(
         'invalid message: expected different previous message on feed'
       )
@@ -231,18 +231,18 @@ function validatePrevious(author, sequence, previous, previousMsg) {
 }
 
 function validateTypeFormat(msgBFE) {
-  if (msgBFE[0][0].slice(0, 2).toString('hex') != '0003')
+  if (msgBFE[0][0].slice(0, 2).toString('hex') !== '0003')
     return new Error(
       'invalid message: author value must have the correct type-format'
     )
 
   if (msgBFE[0][1] === 1) {
-    if (msgBFE[0][2].slice(0, 2).toString('hex') != '0602')
+    if (msgBFE[0][2].slice(0, 2).toString('hex') !== '0602')
       return new Error(
         'invalid message: previous value must have the nil type-format if sequence is 1'
       )
   } else {
-    if (msgBFE[0][2].slice(0, 2).toString('hex') != '0104')
+    if (msgBFE[0][2].slice(0, 2).toString('hex') !== '0104')
       return new Error(
         'invalid message: previous value must have the correct type-format'
       )
