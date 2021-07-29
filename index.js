@@ -153,18 +153,26 @@ function hash(msgVal) {
  */
 function decodeAndValidateSingle(bbmsg, previousMsg, hmacKey) {
   if (bbmsg.length > 8192)
-    return new Error('invalid message: length must not exceed 8192 bytes')
+    return new Error(
+      `invalid message size: ${bbmsg.length} bytes, must not be greater than 8192 bytes`
+    )
 
   const msgBFE = bencode.decode(bbmsg)
 
   if (!Array.isArray(msgBFE) || msgBFE.length !== 2)
-    return new Error('invalid message: must be a list of payload and signature')
+    return new Error(
+      `invalid message: ${typeof msgBFE} with length ${
+        msgBFE.length
+      }, expected a list of payload and signature`
+    )
 
   const [payload, signature] = bfe.decode(msgBFE)
 
   if (!Array.isArray(payload) || payload.length !== 5)
     return new Error(
-      'invalid payload: must be a list of author, sequence, previous, timestamp and contentSection'
+      `invalid message payload: ${typeof payload} with length ${
+        payload.length
+      }, expected a list of author, sequence, previous, timestamp and contentSection`
     )
 
   const typeFormatErr = validateTypeFormat(msgBFE)
@@ -210,7 +218,7 @@ function validatePrevious(author, sequence, previous, previousMsg) {
   if (sequence === 1) {
     if (previous !== null)
       return new Error(
-        'invalid message: message must have a previous value of null if sequence is 1'
+        `invalid message: previous is "${previous}", expected a value of null because sequence is 1`
       )
   } else {
     const previousMsgAuthor = previousMsg[0]
@@ -220,13 +228,13 @@ function validatePrevious(author, sequence, previous, previousMsg) {
       )
     if (author !== previousMsgAuthor)
       return new Error(
-        'invalid message: author must be the same for the current and previous messages'
+        `invalid message: author is "${author}" but previous message author is "${previousMsgAuthor}", expected values to be identical`
       )
 
     const previousHash = hash(previousMsg)
     if (previous !== previousHash)
       return new Error(
-        'invalid message: expected different previous message on feed'
+        `invalid message: previous is "${previous}" but the computed hash of the previous message is "${previousHash}", expected values to be identical`
       )
   }
 }
@@ -235,20 +243,23 @@ function validateTypeFormat(msgBFE) {
   const payload = msgBFE[0]
   const [author, sequence, previous] = payload
 
-  if (author.slice(0, 2).toString('hex') !== '0003')
+  const authorTypeFormat = author.slice(0, 2).toString('hex')
+  const previousTypeFormat = previous.slice(0, 2).toString('hex')
+
+  if (authorTypeFormat !== '0003')
     return new Error(
-      'invalid message: author value must have the correct type-format'
+      `invalid message: author type-format "0x${authorTypeFormat}" is incorrect, expected 0x0003`
     )
 
   if (sequence === 1) {
-    if (previous.slice(0, 2).toString('hex') !== '0602')
+    if (previousTypeFormat !== '0602')
       return new Error(
-        'invalid message: previous value must have the nil type-format if sequence is 1'
+        `invalid message: previous type-format "0x${previousTypeFormat}" is incorrect, expected 0x0602 (nil type-format) because sequence is 1`
       )
   } else {
-    if (previous.slice(0, 2).toString('hex') !== '0104')
+    if (previousTypeFormat !== '0104')
       return new Error(
-        'invalid message: previous value must have the correct type-format'
+        `invalid message: previous type-format "0x${previousTypeFormat}" is incorrect, expected 0x0104`
       )
   }
 }
@@ -262,11 +273,15 @@ function validateHmacKey(hmacKey) {
 
   if (typeof hmacKey === 'string') {
     if (bytes.toString('base64') !== hmacKey)
-      return new Error('invalid hmac key: string must be base64 encoded')
+      return new Error(
+        `invalid hmac key: "${hmacKey}", expected string to be base64 encoded`
+      )
   }
 
   if (bytes.length !== 32)
-    return new Error('invalid hmac key: must have a length of 32 bytes')
+    return new Error(
+      `invalid hmac key: "${hmacKey}" with length ${hmacKey.length}, expected 32 bytes`
+    )
 }
 
 module.exports = {
