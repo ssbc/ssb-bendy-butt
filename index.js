@@ -167,13 +167,13 @@ function decodeAndValidateSingle(bbmsg, previousMsg, hmacKey) {
       'invalid payload: must be a list of author, sequence, previous, timestamp and contentSection'
     )
 
-  const signatureErr = validateSignature(payload, signature, hmacKey)
-  if (signatureErr) return signatureErr
-
   const typeFormatErr = validateTypeFormat(msgBFE)
   if (typeFormatErr) return typeFormatErr
 
   const [author, sequence, previous, timestamp, contentSection] = payload
+
+  const signatureErr = validateSignature(author, payload, signature, hmacKey)
+  if (signatureErr) return signatureErr
 
   const previousErr = validatePrevious(author, sequence, previous, previousMsg)
   if (previousErr) return previousErr
@@ -196,11 +196,11 @@ function decodeAndValidateSingle(bbmsg, previousMsg, hmacKey) {
   return msgVal
 }
 
-function validateSignature(payload, signature, hmacKey) {
+function validateSignature(author, payload, signature, hmacKey) {
   const hmacKeyErr = validateHmacKey(hmacKey)
   if (hmacKeyErr) return hmacKeyErr
 
-  if (!ssbKeys.verifyObj(signature, hmacKey, payload))
+  if (!ssbKeys.verify(author, signature, hmacKey, payload))
     return new Error(
       'invalid message: signature must correctly sign the payload'
     )
@@ -213,11 +213,12 @@ function validatePrevious(author, sequence, previous, previousMsg) {
         'invalid message: message must have a previous value of null if sequence is 1'
       )
   } else {
+    const previousMsgAuthor = previousMsg[0]
     if (!previousMsg)
       return new Error(
         'invalid previousMsg: value must not be undefined if sequence > 1'
       )
-    if (author !== previousMsg[0])
+    if (author !== previousMsgAuthor)
       return new Error(
         'invalid message: author must be the same for the current and previous messages'
       )
@@ -231,18 +232,21 @@ function validatePrevious(author, sequence, previous, previousMsg) {
 }
 
 function validateTypeFormat(msgBFE) {
-  if (msgBFE[0][0].slice(0, 2).toString('hex') !== '0003')
+  const payload = msgBFE[0]
+  const [author, sequence, previous] = payload
+
+  if (author.slice(0, 2).toString('hex') !== '0003')
     return new Error(
       'invalid message: author value must have the correct type-format'
     )
 
-  if (msgBFE[0][1] === 1) {
-    if (msgBFE[0][2].slice(0, 2).toString('hex') !== '0602')
+  if (sequence === 1) {
+    if (previous.slice(0, 2).toString('hex') !== '0602')
       return new Error(
         'invalid message: previous value must have the nil type-format if sequence is 1'
       )
   } else {
-    if (msgBFE[0][2].slice(0, 2).toString('hex') !== '0104')
+    if (previous.slice(0, 2).toString('hex') !== '0104')
       return new Error(
         'invalid message: previous value must have the correct type-format'
       )
