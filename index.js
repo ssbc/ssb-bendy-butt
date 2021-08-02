@@ -182,11 +182,12 @@ function decodeAndValidateSingle(bbmsg, previousMsg, hmacKey) {
 
   const [author, sequence, previous, timestamp, contentSection] = payload
 
-  const signatureErr = validateSignature(author, payload, signature, hmacKey)
-  if (signatureErr) return signatureErr
-
   const previousErr = validatePrevious(author, sequence, previous, previousMsg)
   if (previousErr) return previousErr
+
+  const payloadBFE = bencode.encode(msgBFE[0])
+  const signatureErr = validateSignature(author, payloadBFE, signature, hmacKey)
+  if (signatureErr) return signatureErr
 
   const msgVal = {
     author,
@@ -210,9 +211,17 @@ function validateSignature(author, payload, signature, hmacKey) {
   const hmacKeyErr = validateHmacKey(hmacKey)
   if (hmacKeyErr) return hmacKeyErr
 
-  if (!ssbKeys.verify(author, signature, hmacKey, payload))
+  if (
+    !ssbKeys.verify(
+      { public: author, curve: 'ed25519' },
+      signature,
+      hmacKey,
+      payload
+    )
+  )
     return new Error(
-      'invalid message: signature must correctly sign the payload'
+      'invalid message: signature must correctly sign the payload',
+      author
     )
 }
 
