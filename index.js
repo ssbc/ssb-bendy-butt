@@ -149,6 +149,8 @@ function hash(msgVal) {
  * Performs message validation before returning the decoded message object.
  *
  * @param {Buffer} bbmsg a bendy-butt message encoded with `bencode`
+ * @param {Object} previousMsg a decoded `msgVal` JSON object
+ * @param {Buffer | string | null} hmacKey a valid hmac key for signature verification
  * @returns {Object} an object compatible with ssb/classic `msg.value` or an `Error`
  */
 function decodeAndValidateSingle(bbmsg, previousMsg, hmacKey) {
@@ -221,14 +223,13 @@ function validatePrevious(author, sequence, previous, previousMsg) {
         `invalid message: previous is "${previous}", expected a value of null because sequence is 1`
       )
   } else {
-    const previousMsgAuthor = previousMsg[0]
     if (!previousMsg)
       return new Error(
         'invalid previousMsg: value must not be undefined if sequence > 1'
       )
-    if (author !== previousMsgAuthor)
+    if (author !== previousMsg.author)
       return new Error(
-        `invalid message: author is "${author}" but previous message author is "${previousMsgAuthor}", expected values to be identical`
+        `invalid message: author is "${author}" but previous message author is "${previousMsg.author}", expected values to be identical`
       )
 
     const previousHash = hash(previousMsg)
