@@ -31,6 +31,16 @@ Finally, if the new message is meant to be encrypted to some recipients
 The arguments `bbAuthor`, `bbContentSection` and `bbPreviousMsgId` must be
 encoded in `bencode` and BFE, and `recps` is the array of recipient IDs.
 
+### decodeAndValidateSingle(bbmsg, previousMsg?, hmacKey?)
+
+Takes a bencoded message Buffer consisting of BFE-encoded values, decodes it and performs validation according to the criteria defined in the [bendy butt spec](https://github.com/ssb-ngi-pointer/bendy-butt-spec#specification).
+
+The `previousMsg` parameter is optional and can be omitted if the message being validated is the first message on a feed (`sequence` is `1`). In all other cases it is required. The `hmacKey` is also optional and is only required if an HMAC value was supplied to `encodeNew()` when the message being validated was created.
+
+In the event of successful validation, the decoded `msgVal` object is returned with fields for `author`, `sequence`, `previous`, `timestamp`, `signature` and `content`.
+
+If validation fails, an `Error` object is returned with `Error.message` describing the failure.
+
 ### hash(msgVal)
 
 Calculate the message key (as a sigil-based string) for the given "msg value"

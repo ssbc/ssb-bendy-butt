@@ -207,7 +207,16 @@ function decodeAndValidateSingle(bbmsg, previousMsg, hmacKey) {
   return msgVal
 }
 
-function validateSignature(author, payload, signature, hmacKey) {
+/**
+ * Verify that the signature correctly signs the message payload.
+ *
+ * @param {string} author - Author ID for the message
+ * @param {Buffer} payloadBFE - Bencoded message payload containing a BFE-encoded list of `author, sequence, previous, timestamp, contentSection`
+ * @param {string} signature - Base64-encoded signature for the given payload
+ * @param {Buffer | string | null} hmacKey - HMAC key that was used to sign the payload
+ * @returns {Object | undefined} Either an Error containing a message or an `undefined` value for successful verification
+ */
+function validateSignature(author, payloadBFE, signature, hmacKey) {
   const hmacKeyErr = validateHmacKey(hmacKey)
   if (hmacKeyErr) return hmacKeyErr
 
@@ -225,6 +234,15 @@ function validateSignature(author, payload, signature, hmacKey) {
     )
 }
 
+/**
+ * Validate a message in relation to the previous message on the feed.
+ *
+ * @param {string} author - Author ID for the message
+ * @param {number} sequence - Sequence number of the message being validated
+ * @param {string | null} previous - Message ID of the previous message on the feed (`null` if `sequence` is `1`)
+ * @param {Object | null} previousMsg - Previous message value as an object (`null` if `sequence` is `1`)
+ * @returns {Object | undefined} Either an Error containing a message or an `undefined` value for successful validation
+ */
 function validatePrevious(author, sequence, previous, previousMsg) {
   if (sequence === 1) {
     if (previous !== null)
@@ -249,6 +267,12 @@ function validatePrevious(author, sequence, previous, previousMsg) {
   }
 }
 
+/**
+ * Validate the BFE type-format encodings for the `author` and `previous` ID values.
+ *
+ * @param {Object} msgBFE - A BFE-encoded message value
+ * @returns {Object | undefined} Either an Error containing a message or an `undefined` value for successful validation
+ */
 function validateTypeFormat(msgBFE) {
   const payload = msgBFE[0]
   const [author, sequence, previous] = payload
@@ -274,6 +298,12 @@ function validateTypeFormat(msgBFE) {
   }
 }
 
+/**
+ * Validate an HMAC key.
+ *
+ * @param {Buffer | string | null | undefined} hmacKey
+ * @returns {Object | boolean} Either an Error containing a message or a `false` value for successful validation
+ */
 function validateHmacKey(hmacKey) {
   if (hmacKey === undefined || hmacKey === null) return false
 
