@@ -34,19 +34,23 @@ tape('validation works', function (t) {
   const msg2 = entryToMsgValue(vec.Entries[1])
   const msg3 = entryToMsgValue(vec.Entries[2])
 
-  const bbmsg1 = bb.encode(msg1)
-  const bbmsg2 = bb.encode(msg2)
-  const bbmsg3 = bb.encode(msg3)
+  const bbmsg1 = Buffer.from(vec.Entries[0].EncodedData, 'hex')
+  const bbmsg2 = Buffer.from(vec.Entries[1].EncodedData, 'hex')
+  const bbmsg3 = Buffer.from(vec.Entries[2].EncodedData, 'hex')
 
   const msg1ValidationResult = bb.decodeAndValidateSingle(bbmsg1, null, null)
-  t.ok(msg1ValidationResult, 'validates 1st message (seq 1) without previous')
+  t.deepEqual(
+    msg1ValidationResult,
+    msg1,
+    'validates 1st message (seq 1) without previous'
+  )
 
   const msg2ValidationResult = bb.decodeAndValidateSingle(
     bbmsg2,
     msg1ValidationResult,
     null
   )
-  t.ok(msg2ValidationResult, 'validates 2nd message with previous')
+  t.deepEqual(msg2ValidationResult, msg2, 'validates 2nd message with previous')
 
   const noPreviousValidationResult = bb.decodeAndValidateSingle(
     bbmsg2,
@@ -137,7 +141,7 @@ tape('validation works', function (t) {
   )
   t.deepEqual(
     invalidHmacValidationResult.message,
-    'invalid hmac key: "not a valid hmac key", expected string to be base64 encoded',
+    'invalid hmac key: "not a valid hmac key" with length 20, expected 32 bytes',
     'catches invalid hmac (not base64 encoded)'
   )
 
