@@ -225,7 +225,7 @@ function validateSignature(author, payloadBFE, signature, hmacKey) {
       { public: author, curve: 'ed25519' },
       signature,
       hmacKey,
-      payload
+      payloadBFE
     )
   )
     return new Error(
