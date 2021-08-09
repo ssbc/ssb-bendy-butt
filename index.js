@@ -1,6 +1,7 @@
 const bencode = require('bencode')
 const ssbKeys = require('ssb-keys')
 const bfe = require('ssb-bfe')
+const isCanonicalBase64 = require('is-canonical-base64')
 
 const CONTENT_SIG_PREFIX = Buffer.from('bendybutt', 'utf8')
 
@@ -168,6 +169,9 @@ function decodeAndValidateSingle(bbmsg, previousMsg, hmacKey) {
       }, expected a list of payload and signature`
     )
 
+  const typeFormatErr = validateTypeFormatData(msgBFE)
+  if (typeFormatErr) return typeFormatErr
+
   const [payload, signature] = bfe.decode(msgBFE)
 
   if (!Array.isArray(payload) || payload.length !== 5)
@@ -176,9 +180,6 @@ function decodeAndValidateSingle(bbmsg, previousMsg, hmacKey) {
         payload.length
       }, expected a list of author, sequence, previous, timestamp and contentSection`
     )
-
-  const typeFormatErr = validateTypeFormat(msgBFE)
-  if (typeFormatErr) return typeFormatErr
 
   const [author, sequence, previous, timestamp, contentSection] = payload
 
@@ -219,6 +220,13 @@ function decodeAndValidateSingle(bbmsg, previousMsg, hmacKey) {
 function validateSignature(author, payloadBFE, signature, hmacKey) {
   const hmacKeyErr = validateHmacKey(hmacKey)
   if (hmacKeyErr) return hmacKeyErr
+
+  const isSignatureRx = isCanonicalBase64('', '\\.sig.\\w+')
+
+  if (!isSignatureRx.test(signature))
+    return new Error(
+      `invalid message: signature "${signature}", expected a base64 string`
+    )
 
   if (
     !ssbKeys.verify(
@@ -268,12 +276,12 @@ function validatePrevious(author, sequence, previous, previousMsg) {
 }
 
 /**
- * Validate the BFE type-format encodings for the `author` and `previous` ID values.
+ * Validate the BFE type-format-data encodings for the `author` and `previous` ID values.
  *
  * @param {Object} msgBFE - A BFE-encoded message value
  * @returns {Object | undefined} Either an Error containing a message or an `undefined` value for successful validation
  */
-function validateTypeFormat(msgBFE) {
+function validateTypeFormatData(msgBFE) {
   const payload = msgBFE[0]
   const [author, sequence, previous] = payload
 
@@ -296,6 +304,11 @@ function validateTypeFormat(msgBFE) {
         `invalid message: previous type-format "0x${previousTypeFormat}" is incorrect, expected 0x0104`
       )
   }
+
+  if (author.length !== 34)
+    return new Error(
+      `invalid message: author type-format-data length of ${author.length} bytes is incorrect, expected 34 bytes`
+    )
 }
 
 /**

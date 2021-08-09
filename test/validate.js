@@ -9,6 +9,10 @@ const vec = JSON.parse(
   fs.readFileSync('test/testvector-metafeed-managment.json', 'utf8')
 )
 
+const badVec = JSON.parse(
+  fs.readFileSync('test/testvector-metafeed-bad-messages.json', 'utf8')
+)
+
 function entryToMsgValue(entry) {
   const { Author, Sequence, Previous, Timestamp, Signature } = entry
   let [content, contentSignature] = entry.HighlevelContent
@@ -189,6 +193,142 @@ tape('validation works', function (t) {
     invalidAuthorTypeFormatValidationResult2.message,
     'invalid message: previous type-format "0x0909" is incorrect, expected 0x0104',
     'catches invalid type-format for previous (seq > 1)'
+  )
+
+  /* tests using `testvector-metafeed-bad-messages.json` */
+
+  const badAuthorTypeMsg = Buffer.from(
+    badVec.Cases[0].Entries[0].EncodedData,
+    'hex'
+  )
+  const badAuthorTypeResult = bb.decodeAndValidateSingle(
+    badAuthorTypeMsg,
+    null,
+    null
+  )
+  t.deepEqual(
+    badAuthorTypeResult.message,
+    'invalid message: author type-format "0xff03" is incorrect, expected 0x0003',
+    'catches invalid author (TFD type)'
+  )
+
+  const badAuthorFormatMsg = Buffer.from(
+    badVec.Cases[1].Entries[0].EncodedData,
+    'hex'
+  )
+  const badAuthorFormatResult = bb.decodeAndValidateSingle(
+    badAuthorFormatMsg,
+    null,
+    null
+  )
+  t.deepEqual(
+    badAuthorFormatResult.message,
+    'invalid message: author type-format "0x00ff" is incorrect, expected 0x0003',
+    'catches invalid author (TFD format)'
+  )
+
+  const badAuthorLengthMsg = Buffer.from(
+    badVec.Cases[2].Entries[0].EncodedData,
+    'hex'
+  )
+  const badAuthorLengthResult = bb.decodeAndValidateSingle(
+    badAuthorLengthMsg,
+    null,
+    null
+  )
+  t.deepEqual(
+    badAuthorLengthResult.message,
+    'invalid message: author type-format-data length of 50 bytes is incorrect, expected 34 bytes',
+    'catches invalid author (TFD length)'
+  )
+
+  /*
+  // prev seems to have an invalid contentSection ? not iterable (error)
+  const prev = Buffer.from(badVec.Cases[3].Entries[0].EncodedData, 'hex')
+  const prevMsg = bb.decodeAndValidateSingle(prev, null, null)
+  const badPreviousMsg = Buffer.from(badVec.Cases[3].Entries[1].EncodedData, 'hex')
+  const badPreviousResult = bb.decodeAndValidateSingle(badPreviousMsg, prevMsg, null)
+  t.deepEqual(
+    badPreviousResult.message,
+    'invalid message: author type-format-data length of 50 bytes is incorrect, expected 34 bytes',
+    'catches author with bad TFD length'
+  )
+*/
+
+  const badPreviousTypeFormatMsg = Buffer.from(
+    badVec.Cases[6].Entries[0].EncodedData,
+    'hex'
+  )
+  const badPreviousTypeFormatResult = bb.decodeAndValidateSingle(
+    badPreviousTypeFormatMsg,
+    null,
+    null
+  )
+  t.deepEqual(
+    badPreviousTypeFormatResult.message,
+    'invalid message: previous type-format "0x3132" is incorrect, expected 0x0602 (nil type-format) because sequence is 1',
+    'catches invalid previous (should be null)'
+  )
+
+  /*
+  // prev seems to have an invalid contentSection ? not iterable (error)
+  const prev = Buffer.from(badVec.Cases[7].Entries[1].EncodedData, 'hex')
+  const prevMsg = bb.decodeAndValidateSingle(prev, null, null)
+  const badPreviousMsg = Buffer.from(badVec.Cases[7].Entries[1].EncodedData, 'hex')
+  const badPreviousResult = bb.decodeAndValidateSingle(badPreviousMsg, prevMsg, null)
+  t.deepEqual(
+    badPreviousResult.message,
+    'invalid message: previous type-format "0x3132" is incorrect, expected 0x0602 (nil type-format) because sequence is 1',
+    'catches invalid previous (should be null)'
+  )
+*/
+
+  const badSignatureBase64Msg = Buffer.from(
+    badVec.Cases[8].Entries[0].EncodedData,
+    'hex'
+  )
+  const badSignatureBase64Result = bb.decodeAndValidateSingle(
+    badSignatureBase64Msg,
+    null,
+    null
+  )
+  // not canonical base64
+  // we use `match` because of inability to match with `deepEqual` for weird characters
+  t.match(
+    badSignatureBase64Result.message,
+    /invalid message: signature/,
+    'catches invalid signature (not canonical base64)'
+  )
+
+  const badSignatureMsg = Buffer.from(
+    badVec.Cases[9].Entries[0].EncodedData,
+    'hex'
+  )
+  const badSignatureResult = bb.decodeAndValidateSingle(
+    badSignatureMsg,
+    null,
+    null
+  )
+  t.deepEqual(
+    badSignatureResult.message,
+    'invalid message: signature must correctly sign the payload',
+    'catches invalid signature (bits flipped)'
+  )
+
+  /*
+  // leaving out this case : possible invalid prev msg 
+  console.log(badVec.Cases[10])
+*/
+
+  const badLengthMsg = Buffer.from(
+    badVec.Cases[11].Entries[0].EncodedData,
+    'hex'
+  )
+  const badLengthResult = bb.decodeAndValidateSingle(badLengthMsg, null, null)
+  t.deepEqual(
+    badLengthResult.message,
+    'invalid message size: 8204 bytes, must not be greater than 8192 bytes',
+    'catches invalid message size'
   )
 
   t.end()
