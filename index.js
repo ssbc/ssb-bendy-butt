@@ -1,6 +1,7 @@
 const bencode = require('bencode')
 const ssbKeys = require('ssb-keys')
 const bfe = require('ssb-bfe')
+const { isFeedType, isMsgType } = require('ssb-ref')
 const isCanonicalBase64 = require('is-canonical-base64')
 
 const CONTENT_SIG_PREFIX = Buffer.from('bendybutt', 'utf8')
@@ -146,11 +147,58 @@ function hash(msgVal) {
 }
 
 /**
+ * Validate a decoded bendy-butt message value.
+ *
+ * @param {Object} msgVal - an object compatible with ssb/classic `msg.value`
+ * @param {Object} previousMsg - a decoded `msgVal` object
+ * @param {Buffer | string | null} hmacKey - a valid hmac key for signature verification
+ * @returns {Object | string} an `Error` object with descriptive message or success string
+ */
+function validateSingle(msgVal, previousMsg, hmacKey) {
+  const {
+    author,
+    sequence,
+    previous,
+    timestamp,
+    signature,
+    content,
+    contentSignature,
+  } = msgVal
+
+  if (!isFeedType(author))
+    return new Error(
+      `invalid message: author is "${author}", expected a valid feed identifier`
+    )
+
+  if (sequence < 1)
+    return new Error(
+      `invalid message: sequence is "${sequence}", expected a value greater than or equal to 1`
+    )
+
+  if (!isMsgType(previous))
+    return new Error(
+      `invalid message: previous is "${previous}", expected a valid message identifier`
+    )
+
+  const previousErr = validatePrevious(author, sequence, previous, previousMsg)
+  if (previousErr) return previousErr
+
+  if (typeof timestamp !== 'number')
+    return new Error(
+      `invalid message: timestamp is "${timestamp}", expected a 32 bit integer`
+    )
+
+  // TODO: signature verification?
+
+  return 'message is valid'
+}
+
+/**
  * Decode a bendy-butt message into an object useful for ssb-db and ssb-db2.
  * Performs message validation before returning the decoded message object.
  *
  * @param {Buffer} bbmsg a bendy-butt message encoded with `bencode`
- * @param {Object} previousMsg a decoded `msgVal` JSON object
+ * @param {Object} previousMsg a decoded `msgVal` object
  * @param {Buffer | string | null} hmacKey a valid hmac key for signature verification
  * @returns {Object} an object compatible with ssb/classic `msg.value` or an `Error`
  */
@@ -200,6 +248,13 @@ function decodeAndValidateSingle(bbmsg, previousMsg, hmacKey) {
   if (isBoxedString(contentSection)) {
     msgVal.content = contentSection
   } else {
+    if (!(Array.isArray(contentSection) && contentSection.length === 2))
+      return new Error(
+        `invalid message: contentSection ${typeof contentSection} with length ${
+          contentSection.length
+        } is incorrect, expected a list of content and contentSignature`
+      )
+
     const [content, contentSignature] = contentSection
     msgVal.content = content
     msgVal.contentSignature = contentSignature
@@ -209,7 +264,7 @@ function decodeAndValidateSingle(bbmsg, previousMsg, hmacKey) {
 }
 
 /**
- * Verify that the signature correctly signs the message payload.
+ * Verify that the top-level signature correctly signs the message payload.
  *
  * @param {string} author - Author ID for the message
  * @param {Buffer} payloadBFE - Bencoded message payload containing a BFE-encoded list of `author, sequence, previous, timestamp, contentSection`
