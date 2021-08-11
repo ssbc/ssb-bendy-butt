@@ -42,6 +42,8 @@ tape('validation works', function (t) {
   const bbmsg2 = Buffer.from(vec.Entries[1].EncodedData, 'hex')
   const bbmsg3 = Buffer.from(vec.Entries[2].EncodedData, 'hex')
 
+  console.log('[ basic tests ]')
+
   const msg1ValidationResult = bb.decodeAndValidateSingle(bbmsg1, null, null)
   t.deepEqual(
     msg1ValidationResult,
@@ -72,6 +74,8 @@ tape('validation works', function (t) {
     'catches missing previous msg'
   )
 
+  // temporarily change sequence to align with msg3
+  msg1.sequence = 2
   const incorrectPreviousValidationResult = bb.decodeAndValidateSingle(
     bbmsg3,
     msg1,
@@ -79,9 +83,11 @@ tape('validation works', function (t) {
   )
   t.deepEqual(
     incorrectPreviousValidationResult.message,
-    'invalid message: previous is "%7DXLzzMf8VnymjSd7GVkItMKWGxtokToAFDm3YnwDmA=.bbmsg-v1" but the computed hash of the previous message is "%QnDB5I/djZL75M3T6EU4MiCS5x7++pwXuAJo6lEH6W4=.bbmsg-v1", expected values to be identical',
+    'invalid message: previous is "%7DXLzzMf8VnymjSd7GVkItMKWGxtokToAFDm3YnwDmA=.bbmsg-v1" but the computed hash of the previous message is "%n1NQzx1B6f+hHUwKJxJUglS7lTzsOM/O0wPKLFHIoZo=.bbmsg-v1", expected values to be identical',
     'catches incorrect previous msg hash'
   )
+  // revert sequence change to avoid breaking downstream tests
+  msg1.sequence = 1
 
   const msg3BadAuthor = msg3
   msg3BadAuthor.author =
@@ -195,7 +201,11 @@ tape('validation works', function (t) {
     'catches invalid type-format for previous (seq > 1)'
   )
 
+  /* --------------------------------------------------- */
   /* tests using `testvector-metafeed-bad-messages.json` */
+  /* --------------------------------------------------- */
+
+  console.log('[ vector tests ]')
 
   const badAuthorTypeMsg = Buffer.from(
     badVec.Cases[0].Entries[0].EncodedData,
@@ -242,18 +252,56 @@ tape('validation works', function (t) {
     'catches invalid author (TFD length)'
   )
 
-  /*
-  // prev seems to have an invalid contentSection ? not iterable (error)
-  const prev = Buffer.from(badVec.Cases[3].Entries[0].EncodedData, 'hex')
-  const prevMsg = bb.decodeAndValidateSingle(prev, null, null)
-  const badPreviousMsg = Buffer.from(badVec.Cases[3].Entries[1].EncodedData, 'hex')
-  const badPreviousResult = bb.decodeAndValidateSingle(badPreviousMsg, prevMsg, null)
-  t.deepEqual(
-    badPreviousResult.message,
-    'invalid message: author type-format-data length of 50 bytes is incorrect, expected 34 bytes',
-    'catches author with bad TFD length'
+  const bptPrev = Buffer.from(badVec.Cases[3].Entries[0].EncodedData, 'hex')
+  const bptPrevMsg = bb.decodeAndValidateSingle(bptPrev, null, null)
+  const badPreviousTypeMsg = Buffer.from(
+    badVec.Cases[3].Entries[1].EncodedData,
+    'hex'
   )
-*/
+  const badPreviousTypeResult = bb.decodeAndValidateSingle(
+    badPreviousTypeMsg,
+    bptPrevMsg,
+    null
+  )
+  t.deepEqual(
+    badPreviousTypeResult.message,
+    'invalid message: previous type-format "0xff04" is incorrect, expected 0x0104',
+    'catches invalid previous (TFD type)'
+  )
+
+  const bpfPrev = Buffer.from(badVec.Cases[4].Entries[0].EncodedData, 'hex')
+  const bpfPrevMsg = bb.decodeAndValidateSingle(bpfPrev, null, null)
+  const badPreviousFormatMsg = Buffer.from(
+    badVec.Cases[4].Entries[1].EncodedData,
+    'hex'
+  )
+  const badPreviousFormatResult = bb.decodeAndValidateSingle(
+    badPreviousFormatMsg,
+    bpfPrevMsg,
+    null
+  )
+  t.deepEqual(
+    badPreviousFormatResult.message,
+    'invalid message: previous type-format "0x01ff" is incorrect, expected 0x0104',
+    'catches invalid previous (TFD format)'
+  )
+
+  const bplPrev = Buffer.from(badVec.Cases[5].Entries[0].EncodedData, 'hex')
+  const bplPrevMsg = bb.decodeAndValidateSingle(bplPrev, null, null)
+  const badPreviousLengthMsg = Buffer.from(
+    badVec.Cases[5].Entries[1].EncodedData,
+    'hex'
+  )
+  const badPreviousLengthResult = bb.decodeAndValidateSingle(
+    badPreviousLengthMsg,
+    bplPrevMsg,
+    null
+  )
+  t.deepEqual(
+    badPreviousLengthResult.message,
+    'invalid message: previous is "%S4a+j9puL4f5sVnI9y08FlIVtnzUdScMcg3ORdj3+A3/////////////////////.bbmsg-v1" but the computed hash of the previous message is "%S4a+j9puL4f5sVnI9y08FlIVtnzUdScMcg3ORdj3+A0=.bbmsg-v1", expected values to be identical',
+    'catches invalid previous (hash mismatch; length)'
+  )
 
   const badPreviousTypeFormatMsg = Buffer.from(
     badVec.Cases[6].Entries[0].EncodedData,
@@ -270,18 +318,23 @@ tape('validation works', function (t) {
     'catches invalid previous (should be null)'
   )
 
-  /*
-  // prev seems to have an invalid contentSection ? not iterable (error)
-  const prev = Buffer.from(badVec.Cases[7].Entries[1].EncodedData, 'hex')
-  const prevMsg = bb.decodeAndValidateSingle(prev, null, null)
-  const badPreviousMsg = Buffer.from(badVec.Cases[7].Entries[1].EncodedData, 'hex')
-  const badPreviousResult = bb.decodeAndValidateSingle(badPreviousMsg, prevMsg, null)
+  const badPrev = Buffer.from(badVec.Cases[7].Entries[0].EncodedData, 'hex')
+  const badPrevMsg = bb.decodeAndValidateSingle(badPrev, null, null)
+  // naming is a bit weird but this is the message we're validating
+  const badPreviousMsg = Buffer.from(
+    badVec.Cases[7].Entries[1].EncodedData,
+    'hex'
+  )
+  const badPreviousResult = bb.decodeAndValidateSingle(
+    badPreviousMsg,
+    badPrevMsg,
+    null
+  )
   t.deepEqual(
     badPreviousResult.message,
-    'invalid message: previous type-format "0x3132" is incorrect, expected 0x0602 (nil type-format) because sequence is 1',
-    'catches invalid previous (should be null)'
+    'invalid message: previous is "%//////////////////////////////////////////8=.bbmsg-v1" but the computed hash of the previous message is "%NQxZPneHjrDQmQ21PcK26Zhtdfft6PCwKQALXEcNp5w=.bbmsg-v1", expected values to be identical',
+    'catches invalid previous (hash mismatch)'
   )
-*/
 
   const badSignatureBase64Msg = Buffer.from(
     badVec.Cases[8].Entries[0].EncodedData,
@@ -315,10 +368,22 @@ tape('validation works', function (t) {
     'catches invalid signature (bits flipped)'
   )
 
-  /*
-  // leaving out this case : possible invalid prev msg 
-  console.log(badVec.Cases[10])
-*/
+  const bseqPrev = Buffer.from(badVec.Cases[10].Entries[0].EncodedData, 'hex')
+  const bseqPrevMsg = bb.decodeAndValidateSingle(bseqPrev, null, null)
+  const badSequenceMsg = Buffer.from(
+    badVec.Cases[10].Entries[1].EncodedData,
+    'hex'
+  )
+  const badSequenceResult = bb.decodeAndValidateSingle(
+    badSequenceMsg,
+    bseqPrevMsg,
+    null
+  )
+  t.deepEqual(
+    badSequenceResult.message,
+    'invalid message: sequence is 3 but prevMsg sequence is 1, expected sequence to be prevMsg.sequence + 1',
+    'catches invalid previous (incorrect sequence)'
+  )
 
   const badLengthMsg = Buffer.from(
     badVec.Cases[11].Entries[0].EncodedData,

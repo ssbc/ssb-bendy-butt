@@ -321,6 +321,10 @@ function validatePrevious(author, sequence, previous, previousMsg) {
       return new Error(
         `invalid message: author is "${author}" but previous message author is "${previousMsg.author}", expected values to be identical`
       )
+    if (sequence !== previousMsg.sequence + 1)
+      return new Error(
+        `invalid message: sequence is ${sequence} but prevMsg sequence is ${previousMsg.sequence}, expected sequence to be prevMsg.sequence + 1`
+      )
 
     const previousHash = hash(previousMsg)
     if (previous !== previousHash)
