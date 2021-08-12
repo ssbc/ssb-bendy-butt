@@ -1,7 +1,7 @@
 const bencode = require('bencode')
 const ssbKeys = require('ssb-keys')
 const bfe = require('ssb-bfe')
-const { isFeedType, isMsgType } = require('ssb-ref')
+const ref = require('ssb-ref')
 const isCanonicalBase64 = require('is-canonical-base64')
 
 const CONTENT_SIG_PREFIX = Buffer.from('bendybutt', 'utf8')
@@ -165,7 +165,7 @@ function validateSingle(msgVal, previousMsg, hmacKey) {
     contentSignature,
   } = msgVal
 
-  if (!isFeedType(author))
+  if (!ref.isFeedType(author))
     return new Error(
       `invalid message: author is "${author}", expected a valid feed identifier`
     )
@@ -173,11 +173,6 @@ function validateSingle(msgVal, previousMsg, hmacKey) {
   if (sequence < 1)
     return new Error(
       `invalid message: sequence is "${sequence}", expected a value greater than or equal to 1`
-    )
-
-  if (!isMsgType(previous))
-    return new Error(
-      `invalid message: previous is "${previous}", expected a valid message identifier`
     )
 
   const previousErr = validatePrevious(author, sequence, previous, previousMsg)
@@ -188,7 +183,25 @@ function validateSingle(msgVal, previousMsg, hmacKey) {
       `invalid message: timestamp is "${timestamp}", expected a 32 bit integer`
     )
 
-  // TODO: signature verification?
+  const contentBFE = bfe.encode(content)
+  const contentSignatureBFE = bfe.encode(contentSignature)
+
+  let contentSection = [contentBFE, contentSignatureBFE]
+  if (content.recps) {
+    contentSection = boxer(
+      bfe.encode(author),
+      bencode.encode(contentSection),
+      bfe.encode(previous),
+      content.recps
+    )
+  }
+
+  const payload = [author, sequence, previous, timestamp, contentSection]
+  const payloadBFE = bfe.encode(payload)
+  const payloadBen = bencode.encode(payloadBFE)
+
+  const signatureErr = validateSignature(author, payloadBen, signature, hmacKey)
+  if (signatureErr) return signatureErr
 
   return 'message is valid'
 }
@@ -234,8 +247,8 @@ function decodeAndValidateSingle(bbmsg, previousMsg, hmacKey) {
   const previousErr = validatePrevious(author, sequence, previous, previousMsg)
   if (previousErr) return previousErr
 
-  const payloadBFE = bencode.encode(msgBFE[0])
-  const signatureErr = validateSignature(author, payloadBFE, signature, hmacKey)
+  const payloadBen = bencode.encode(msgBFE[0])
+  const signatureErr = validateSignature(author, payloadBen, signature, hmacKey)
   if (signatureErr) return signatureErr
 
   const msgVal = {
@@ -267,12 +280,12 @@ function decodeAndValidateSingle(bbmsg, previousMsg, hmacKey) {
  * Verify that the top-level signature correctly signs the message payload.
  *
  * @param {string} author - Author ID for the message
- * @param {Buffer} payloadBFE - Bencoded message payload containing a BFE-encoded list of `author, sequence, previous, timestamp, contentSection`
+ * @param {Buffer} payloadBen - Bencoded message payload containing a BFE-encoded list of `author, sequence, previous, timestamp, contentSection`
  * @param {string} signature - Base64-encoded signature for the given payload
  * @param {Buffer | string | null} hmacKey - HMAC key that was used to sign the payload
  * @returns {Object | undefined} Either an Error containing a message or an `undefined` value for successful verification
  */
-function validateSignature(author, payloadBFE, signature, hmacKey) {
+function validateSignature(author, payloadBen, signature, hmacKey) {
   const hmacKeyErr = validateHmacKey(hmacKey)
   if (hmacKeyErr) return hmacKeyErr
 
@@ -288,7 +301,7 @@ function validateSignature(author, payloadBFE, signature, hmacKey) {
       { public: author, curve: 'ed25519' },
       signature,
       hmacKey,
-      payloadBFE
+      payloadBen
     )
   )
     return new Error(
@@ -313,6 +326,10 @@ function validatePrevious(author, sequence, previous, previousMsg) {
         `invalid message: previous is "${previous}", expected a value of null because sequence is 1`
       )
   } else {
+    if (!ref.isMsgType(previous))
+      return new Error(
+        `invalid message: previous is "${previous}", expected a valid message identifier`
+      )
     if (!previousMsg)
       return new Error(
         'invalid previousMsg: value must not be undefined if sequence > 1'
@@ -403,4 +420,5 @@ module.exports = {
   encodeNew,
   hash,
   decodeAndValidateSingle,
+  validateSingle,
 }
