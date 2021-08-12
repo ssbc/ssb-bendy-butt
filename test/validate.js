@@ -33,7 +33,38 @@ function entryToMsgValue(entry) {
   }
 }
 
-tape('validation works', function (t) {
+tape('validation works (validateSingle)', function (t) {
+  const msg1 = entryToMsgValue(vec.Entries[0])
+  const msg2 = entryToMsgValue(vec.Entries[1])
+  const msg3 = entryToMsgValue(vec.Entries[2])
+
+  console.log('[ basic tests ]')
+
+  const msg1ValidationResult = bb.validateSingle(msg1, null, null)
+  t.deepEqual(
+    msg1ValidationResult,
+    'message is valid',
+    'validates 1st message (seq 1) without previous'
+  )
+
+  const msg2ValidationResult = bb.validateSingle(msg2, msg1, null)
+  t.deepEqual(
+    msg1ValidationResult,
+    'message is valid',
+    'validates 2nd message with previous'
+  )
+
+  const msg3ValidationResult = bb.validateSingle(msg3, msg2, null)
+  t.deepEqual(
+    msg1ValidationResult,
+    'message is valid',
+    'validates 3rd message with previous'
+  )
+
+  t.end()
+})
+
+tape('validation works (decodeAndValidateSingle)', function (t) {
   const msg1 = entryToMsgValue(vec.Entries[0])
   const msg2 = entryToMsgValue(vec.Entries[1])
   const msg3 = entryToMsgValue(vec.Entries[2])
