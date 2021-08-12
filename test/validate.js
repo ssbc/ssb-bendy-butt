@@ -54,11 +54,64 @@ tape('validation works (validateSingle)', function (t) {
     'validates 2nd message with previous'
   )
 
-  const msg3ValidationResult = bb.validateSingle(msg3, msg2, null)
+  const noPreviousValidationResult = bb.validateSingle(msg3, null, null)
   t.deepEqual(
-    msg1ValidationResult,
-    'message is valid',
-    'validates 3rd message with previous'
+    noPreviousValidationResult.name,
+    'Error',
+    'returns error object when missing previous msg'
+  )
+  t.deepEqual(
+    noPreviousValidationResult.message,
+    'invalid previousMsg: value must not be undefined if sequence > 1',
+    'catches missing previous msg'
+  )
+
+  // temporarily change sequence to align with msg3
+  msg1.sequence = 2
+  const incorrectPreviousValidationResult = bb.validateSingle(msg3, msg1, null)
+  t.deepEqual(
+    incorrectPreviousValidationResult.message,
+    'invalid message: previous is "%7DXLzzMf8VnymjSd7GVkItMKWGxtokToAFDm3YnwDmA=.bbmsg-v1" but the computed hash of the previous message is "%n1NQzx1B6f+hHUwKJxJUglS7lTzsOM/O0wPKLFHIoZo=.bbmsg-v1", expected values to be identical',
+    'catches incorrect previous msg hash'
+  )
+  // revert sequence change to avoid breaking downstream tests
+  msg1.sequence = 1
+
+  const incorrectAuthorMsg = msg3
+  incorrectAuthorMsg.author =
+    '@c77R2e7lj8h7NFqGhOu6lCGy8gLxWV+J4ORd1X7rP3c=.bbfeed-v1'
+  const incorrectAuthorValidationResult = bb.validateSingle(
+    incorrectAuthorMsg,
+    msg2,
+    null
+  )
+  t.deepEqual(
+    incorrectAuthorValidationResult.message,
+    'invalid message: author is "@c77R2e7lj8h7NFqGhOu6lCGy8gLxWV+J4ORd1X7rP3c=.bbfeed-v1" but previous message author is "@b99R2e7lj8h7NFqGhOu6lCGy8gLxWV+J4ORd1X7rP3c=.bbfeed-v1", expected values to be identical',
+    'catches incorrect previous msg author'
+  )
+
+  const hmacKey = Buffer.from('not a valid hmac key')
+  const invalidHmacValidationResult = bb.validateSingle(msg2, msg1, hmacKey)
+  t.deepEqual(
+    invalidHmacValidationResult.message,
+    'invalid hmac key: "not a valid hmac key" with length 20, expected 32 bytes',
+    'catches invalid hmac (not base64 encoded)'
+  )
+
+  const tamperedSignatureMsg = msg1
+  // change the first character of the signature to invalidate it ('G' -> 'Z')
+  tamperedSignatureMsg.signature =
+    'ZkuHYMetsUCVXzM70u7grRBrVYjdo35EGl/Gr8wq4yis+5WND4WACanaDQpVGn4H0lmqmb87gDT9UdSF9STyDg==.sig.ed25519'
+  const tamperedSignatureValidationResult = bb.validateSingle(
+    tamperedSignatureMsg,
+    null,
+    null
+  )
+  t.deepEqual(
+    tamperedSignatureValidationResult.message,
+    'invalid message: signature must correctly sign the payload',
+    'catches invalid signature (altered first character)'
   )
 
   t.end()
