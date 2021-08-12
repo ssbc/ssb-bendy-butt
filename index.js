@@ -203,6 +203,15 @@ function validateSingle(msgVal, previousMsg, hmacKey) {
   const signatureErr = validateSignature(author, payloadBen, signature, hmacKey)
   if (signatureErr) return signatureErr
 
+  // final encoding steps to allow byte-length check
+  const msgBFE = bfe.encode([payloadBFE, signature])
+  const bbmsg = bencode.encode(msgBFE)
+
+  if (bbmsg.length > 8192)
+    return new Error(
+      `invalid message size: ${bbmsg.length} bytes, must not be greater than 8192 bytes`
+    )
+
   return 'message is valid'
 }
 
