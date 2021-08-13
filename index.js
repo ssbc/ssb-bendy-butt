@@ -403,7 +403,7 @@ function validateTypeFormatData(msgBFE) {
  * @returns {Object | boolean} Either an Error containing a message or a `false` value for successful validation
  */
 function validateHmacKey(hmacKey) {
-  if (hmacKey === undefined || hmacKey === null) return false
+  if (hmacKey === undefined || hmacKey === null) return undefined
 
   const bytes = Buffer.isBuffer(hmacKey)
     ? hmacKey
