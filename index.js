@@ -178,7 +178,7 @@ function validateSingle(msgVal, previousMsg, hmacKey) {
   const previousErr = validatePrevious(author, sequence, previous, previousMsg)
   if (previousErr) return previousErr
 
-  if (typeof timestamp !== 'number')
+  if (typeof timestamp !== 'number' || isNaN(timestamp) || !isFinite(timestamp))
     return new Error(
       `invalid message: timestamp is "${timestamp}", expected a 32 bit integer`
     )
@@ -400,7 +400,7 @@ function validateTypeFormatData(msgBFE) {
  * Validate an HMAC key.
  *
  * @param {Buffer | string | null | undefined} hmacKey
- * @returns {Object | boolean} Either an Error containing a message or a `false` value for successful validation
+ * @returns {Object | undefined} Either an Error containing a message or an `undefined` value for successful validation
  */
 function validateHmacKey(hmacKey) {
   if (hmacKey === undefined || hmacKey === null) return undefined
