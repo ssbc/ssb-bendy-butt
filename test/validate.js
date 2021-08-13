@@ -38,7 +38,7 @@ tape('validation works (validateSingle)', function (t) {
   const msg2 = entryToMsgValue(vec.Entries[1])
   const msg3 = entryToMsgValue(vec.Entries[2])
 
-  console.log('[ basic tests ]')
+  t.pass('[ basic tests ]')
 
   const msg1ValidationResult = bb.validateSingle(msg1, null, null)
   t.deepEqual(
@@ -126,7 +126,7 @@ tape('validation works (decodeAndValidateSingle)', function (t) {
   const bbmsg2 = Buffer.from(vec.Entries[1].EncodedData, 'hex')
   const bbmsg3 = Buffer.from(vec.Entries[2].EncodedData, 'hex')
 
-  console.log('[ basic tests ]')
+  t.pass('[ basic tests ]')
 
   const msg1ValidationResult = bb.decodeAndValidateSingle(bbmsg1, null, null)
   t.deepEqual(
@@ -289,7 +289,7 @@ tape('validation works (decodeAndValidateSingle)', function (t) {
   /* tests using `testvector-metafeed-bad-messages.json` */
   /* --------------------------------------------------- */
 
-  console.log('[ vector tests ]')
+  t.pass('[ vector tests ]')
 
   const badAuthorTypeMsg = Buffer.from(
     badVec.Cases[0].Entries[0].EncodedData,
