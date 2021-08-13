@@ -37,7 +37,7 @@ Takes an unencoded object compatible with the shape of `msg.value` under classic
 
 The `previousMsg` parameter is optional and can be omitted if the message being validated is the first message on a feed (`sequence` is `1`). In all other cases it is required. The `hmacKey` is also optional and is only required if an HMAC value was supplied to `encodeNew()` when the message being validated was created.
 
-In the event of successful validation, a string with the value 'message is valid' is returned.
+In the event of successful validation, an `undefined` value is returned.
 
 If validation fails, an `Error` object is returned with `Error.message` describing the failure.
 

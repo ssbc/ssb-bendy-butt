@@ -152,7 +152,7 @@ function hash(msgVal) {
  * @param {Object} msgVal - an object compatible with ssb/classic `msg.value`
  * @param {Object} previousMsg - a decoded `msgVal` object
  * @param {Buffer | string | null} hmacKey - a valid hmac key for signature verification
- * @returns {Object | string} an `Error` object with descriptive message or success string
+ * @returns {Object | undefined} an `Error` object with descriptive message or an `undefined` value for successful validation
  */
 function validateSingle(msgVal, previousMsg, hmacKey) {
   const {
@@ -211,8 +211,6 @@ function validateSingle(msgVal, previousMsg, hmacKey) {
     return new Error(
       `invalid message size: ${bbmsg.length} bytes, must not be greater than 8192 bytes`
     )
-
-  return 'message is valid'
 }
 
 /**

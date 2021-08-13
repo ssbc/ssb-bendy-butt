@@ -43,14 +43,14 @@ tape('validation works (validateSingle)', function (t) {
   const msg1ValidationResult = bb.validateSingle(msg1, null, null)
   t.deepEqual(
     msg1ValidationResult,
-    'message is valid',
+    undefined,
     'validates 1st message (seq 1) without previous'
   )
 
   const msg2ValidationResult = bb.validateSingle(msg2, msg1, null)
   t.deepEqual(
     msg1ValidationResult,
-    'message is valid',
+    undefined,
     'validates 2nd message with previous'
   )
 
