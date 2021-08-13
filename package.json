@@ -9,8 +9,10 @@
   },
   "dependencies": {
     "bencode": "^2.0.1",
+    "iscanonicalbase64": "^1.0.0",
     "ssb-bfe": "~0.5.0",
-    "ssb-keys": "^8.2.0"
+    "ssb-keys": "^8.2.0",
+    "ssb-ref": "^2.16.0"
   },
   "devDependencies": {
     "husky": "^4.3.0",
