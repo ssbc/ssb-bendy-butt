@@ -71,7 +71,7 @@ tape('validation works (validateSingle)', function (t) {
   const incorrectPreviousValidationResult = bb.validateSingle(msg3, msg1, null)
   t.deepEqual(
     incorrectPreviousValidationResult.message,
-    'invalid message: previous is "%7DXLzzMf8VnymjSd7GVkItMKWGxtokToAFDm3YnwDmA=.bbmsg-v1" but the computed hash of the previous message is "%n1NQzx1B6f+hHUwKJxJUglS7lTzsOM/O0wPKLFHIoZo=.bbmsg-v1", expected values to be identical',
+    'invalid message: previous is "%3n1tMdGwA6acShm4qE5mSKLzlPwn3BKkJ7A6LigIF0A=.bbmsg-v1" but the computed hash of the previous message is "%1ASUqxznDFqOXylzNke+8uD6VihYUfZJvU7WOvvKoIw=.bbmsg-v1", expected values to be identical',
     'catches incorrect previous msg hash'
   )
   // revert sequence change to avoid breaking downstream tests
@@ -167,7 +167,7 @@ tape('validation works (decodeAndValidateSingle)', function (t) {
   )
   t.deepEqual(
     incorrectPreviousValidationResult.message,
-    'invalid message: previous is "%7DXLzzMf8VnymjSd7GVkItMKWGxtokToAFDm3YnwDmA=.bbmsg-v1" but the computed hash of the previous message is "%n1NQzx1B6f+hHUwKJxJUglS7lTzsOM/O0wPKLFHIoZo=.bbmsg-v1", expected values to be identical',
+    'invalid message: previous is "%3n1tMdGwA6acShm4qE5mSKLzlPwn3BKkJ7A6LigIF0A=.bbmsg-v1" but the computed hash of the previous message is "%1ASUqxznDFqOXylzNke+8uD6VihYUfZJvU7WOvvKoIw=.bbmsg-v1", expected values to be identical',
     'catches incorrect previous msg hash'
   )
   // revert sequence change to avoid breaking downstream tests
