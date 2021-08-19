@@ -115,9 +115,8 @@ function encodeNew(
     hmacKey,
     Buffer.concat([CONTENT_SIG_PREFIX, bencode.encode(contentBFE)])
   )
-  const contentSignatureBFE = bfe.encode(contentSignature)
 
-  let contentSection = [contentBFE, contentSignatureBFE]
+  let contentSection = [content, contentSignature]
   if (content.recps) {
     contentSection = boxer(
       bfe.encode(author),
@@ -131,7 +130,7 @@ function encodeNew(
   const payloadBFE = bfe.encode(payload)
   const signature = ssbKeys.sign(keys, hmacKey, bencode.encode(payloadBFE))
 
-  const msgBFE = bfe.encode([payloadBFE, signature])
+  const msgBFE = bfe.encode([payload, signature])
   const bbmsg = bencode.encode(msgBFE)
   return bbmsg
 }
@@ -183,10 +182,7 @@ function validateSingle(msgVal, previousMsg, hmacKey) {
       `invalid message: timestamp is "${timestamp}", expected a 32 bit integer`
     )
 
-  const contentBFE = bfe.encode(content)
-  const contentSignatureBFE = bfe.encode(contentSignature)
-
-  let contentSection = [contentBFE, contentSignatureBFE]
+  let contentSection = [content, contentSignature]
   if (content.recps) {
     contentSection = boxer(
       bfe.encode(author),
@@ -204,7 +200,7 @@ function validateSingle(msgVal, previousMsg, hmacKey) {
   if (signatureErr) return signatureErr
 
   // final encoding steps to allow byte-length check
-  const msgBFE = bfe.encode([payloadBFE, signature])
+  const msgBFE = bfe.encode([payload, signature])
   const bbmsg = bencode.encode(msgBFE)
 
   if (bbmsg.length > 8192)
