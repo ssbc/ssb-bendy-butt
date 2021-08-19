@@ -145,11 +145,7 @@ function encodeNew(
 function hash(msgVal) {
   let data = ssbKeys.hash(encode(msgVal))
   if (data.endsWith('.sha256')) data = data.slice(0, -'.sha256'.length)
-  return SSBURI.compose({
-    type: 'message',
-    format: 'bendybutt-v1',
-    data,
-  })
+  return SSBURI.compose({ type: 'message', format: 'bendybutt-v1', data })
 }
 
 /**
