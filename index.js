@@ -2,6 +2,7 @@ const bencode = require('bencode')
 const ssbKeys = require('ssb-keys')
 const bfe = require('ssb-bfe')
 const ref = require('ssb-ref')
+const SSBURI = require('ssb-uri2')
 const isCanonicalBase64 = require('is-canonical-base64')
 
 const CONTENT_SIG_PREFIX = Buffer.from('bendybutt', 'utf8')
@@ -139,10 +140,12 @@ function encodeNew(
  * Calculate the message key for the given "msg value".
  *
  * @param {Object} msgVal an object compatible with ssb/classic `msg.value`
- * @returns {string} a sigil-based string uniquely identifying the `msgVal`
+ * @returns {string} an SSB URI uniquely identifying the `msgVal`
  */
 function hash(msgVal) {
-  return '%' + ssbKeys.hash(encode(msgVal)).replace('.sha256', '.bbmsg-v1')
+  let data = ssbKeys.hash(encode(msgVal))
+  if (data.endsWith('.sha256')) data = data.slice(0, -'.sha256'.length)
+  return SSBURI.compose({ type: 'message', format: 'bendybutt-v1', data })
 }
 
 /**
