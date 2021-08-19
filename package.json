@@ -10,7 +10,7 @@
   "dependencies": {
     "bencode": "^2.0.1",
     "iscanonicalbase64": "^1.0.0",
-    "ssb-bfe": "~0.5.0",
+    "ssb-bfe": "~2.0.2",
     "ssb-keys": "^8.2.0",
     "ssb-ref": "^2.16.0"
   },
