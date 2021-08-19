@@ -3,7 +3,7 @@ const ssbKeys = require('ssb-keys')
 const bfe = require('ssb-bfe')
 const ref = require('ssb-ref')
 const SSBURI = require('ssb-uri2')
-const isCanonicalBase64 = require('iscanonicalbase64')
+const isCanonicalBase64 = require('is-canonical-base64')
 
 const CONTENT_SIG_PREFIX = Buffer.from('bendybutt', 'utf8')
 
