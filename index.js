@@ -1,7 +1,6 @@
 const bencode = require('bencode')
 const ssbKeys = require('ssb-keys')
 const bfe = require('ssb-bfe')
-const ref = require('ssb-ref')
 const SSBURI = require('ssb-uri2')
 const isCanonicalBase64 = require('is-canonical-base64')
 
@@ -167,7 +166,7 @@ function validateSingle(msgVal, previousMsg, hmacKey) {
     contentSignature,
   } = msgVal
 
-  if (!ref.isFeedType(author))
+  if (!SSBURI.isBendyButtV1FeedSSBURI(author))
     return new Error(
       `invalid message: author is "${author}", expected a valid feed identifier`
     )
@@ -302,9 +301,10 @@ function validateSignature(author, payloadBen, signature, hmacKey) {
       `invalid message: signature "${signature}", expected a base64 string`
     )
 
+  const { data } = SSBURI.decompose(author)
   if (
     !ssbKeys.verify(
-      { public: author, curve: 'ed25519' },
+      { public: data, curve: 'ed25519' },
       signature,
       hmacKey,
       payloadBen
@@ -332,7 +332,7 @@ function validatePrevious(author, sequence, previous, previousMsg) {
         `invalid message: previous is "${previous}", expected a value of null because sequence is 1`
       )
   } else {
-    if (!ref.isMsgType(previous))
+    if (!SSBURI.isBendyButtV1MessageSSBURI(previous))
       return new Error(
         `invalid message: previous is "${previous}", expected a valid message identifier`
       )
