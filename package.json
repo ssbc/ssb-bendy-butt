@@ -13,10 +13,11 @@
   ],
   "dependencies": {
     "bencode": "^2.0.1",
-    "iscanonicalbase64": "^1.0.0",
-    "ssb-bfe": "~0.5.0",
+    "is-canonical-base64": "^1.1.1",
+    "ssb-bfe": "3.0.1",
     "ssb-keys": "^8.2.0",
-    "ssb-ref": "^2.16.0"
+    "ssb-ref": "^2.16.0",
+    "ssb-uri2": "^1.2.0"
   },
   "devDependencies": {
     "husky": "^4.3.0",
@@ -28,13 +29,13 @@
     "secret-stack": "^6.4.0",
     "ssb-caps": "^1.1.0",
     "ssb-db2": "^2.1.2",
-    "ssb-meta-feeds": "~0.11.0",
+    "ssb-meta-feeds": "~0.17.0",
     "tap-bail": "^1.0.0",
     "tap-spec": "^5.0.0",
     "tape": "^5.2.2"
   },
   "scripts": {
-    "test": "tape test/*.js | tap-bail | tap-spec",
+    "test": "tape test/basic.js test/validate.js | tap-bail | tap-spec",
     "coverage": "nyc --reporter=lcov npm test",
     "format-code": "prettier --write \"*.js\" \"test/*.js\"",
     "format-code-staged": "pretty-quick --staged --pattern \"*.js\" --pattern \"test/*.js\""

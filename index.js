@@ -1,7 +1,7 @@
 const bencode = require('bencode')
 const ssbKeys = require('ssb-keys')
 const bfe = require('ssb-bfe')
-const ref = require('ssb-ref')
+const SSBURI = require('ssb-uri2')
 const isCanonicalBase64 = require('is-canonical-base64')
 
 const CONTENT_SIG_PREFIX = Buffer.from('bendybutt', 'utf8')
@@ -115,9 +115,8 @@ function encodeNew(
     hmacKey,
     Buffer.concat([CONTENT_SIG_PREFIX, bencode.encode(contentBFE)])
   )
-  const contentSignatureBFE = bfe.encode(contentSignature)
 
-  let contentSection = [contentBFE, contentSignatureBFE]
+  let contentSection = [content, contentSignature]
   if (content.recps) {
     contentSection = boxer(
       bfe.encode(author),
@@ -131,7 +130,7 @@ function encodeNew(
   const payloadBFE = bfe.encode(payload)
   const signature = ssbKeys.sign(keys, hmacKey, bencode.encode(payloadBFE))
 
-  const msgBFE = bfe.encode([payloadBFE, signature])
+  const msgBFE = bfe.encode([payload, signature])
   const bbmsg = bencode.encode(msgBFE)
   return bbmsg
 }
@@ -140,10 +139,12 @@ function encodeNew(
  * Calculate the message key for the given "msg value".
  *
  * @param {Object} msgVal an object compatible with ssb/classic `msg.value`
- * @returns {string} a sigil-based string uniquely identifying the `msgVal`
+ * @returns {string} an SSB URI uniquely identifying the `msgVal`
  */
 function hash(msgVal) {
-  return '%' + ssbKeys.hash(encode(msgVal)).replace('.sha256', '.bbmsg-v1')
+  let data = ssbKeys.hash(encode(msgVal))
+  if (data.endsWith('.sha256')) data = data.slice(0, -'.sha256'.length)
+  return SSBURI.compose({ type: 'message', format: 'bendybutt-v1', data })
 }
 
 /**
@@ -165,7 +166,7 @@ function validateSingle(msgVal, previousMsg, hmacKey) {
     contentSignature,
   } = msgVal
 
-  if (!ref.isFeedType(author))
+  if (!SSBURI.isBendyButtV1FeedSSBURI(author))
     return new Error(
       `invalid message: author is "${author}", expected a valid feed identifier`
     )
@@ -183,10 +184,7 @@ function validateSingle(msgVal, previousMsg, hmacKey) {
       `invalid message: timestamp is "${timestamp}", expected a 32 bit integer`
     )
 
-  const contentBFE = bfe.encode(content)
-  const contentSignatureBFE = bfe.encode(contentSignature)
-
-  let contentSection = [contentBFE, contentSignatureBFE]
+  let contentSection = [content, contentSignature]
   if (content.recps) {
     contentSection = boxer(
       bfe.encode(author),
@@ -204,7 +202,7 @@ function validateSingle(msgVal, previousMsg, hmacKey) {
   if (signatureErr) return signatureErr
 
   // final encoding steps to allow byte-length check
-  const msgBFE = bfe.encode([payloadBFE, signature])
+  const msgBFE = bfe.encode([payload, signature])
   const bbmsg = bencode.encode(msgBFE)
 
   if (bbmsg.length > 8192)
@@ -303,9 +301,10 @@ function validateSignature(author, payloadBen, signature, hmacKey) {
       `invalid message: signature "${signature}", expected a base64 string`
     )
 
+  const { data } = SSBURI.decompose(author)
   if (
     !ssbKeys.verify(
-      { public: author, curve: 'ed25519' },
+      { public: data, curve: 'ed25519' },
       signature,
       hmacKey,
       payloadBen
@@ -333,7 +332,7 @@ function validatePrevious(author, sequence, previous, previousMsg) {
         `invalid message: previous is "${previous}", expected a value of null because sequence is 1`
       )
   } else {
-    if (!ref.isMsgType(previous))
+    if (!SSBURI.isBendyButtV1MessageSSBURI(previous))
       return new Error(
         `invalid message: previous is "${previous}", expected a valid message identifier`
       )
