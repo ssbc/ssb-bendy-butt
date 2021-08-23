@@ -10,7 +10,7 @@
   "dependencies": {
     "bencode": "^2.0.1",
     "is-canonical-base64": "^1.1.1",
-    "ssb-bfe": "^3.0.0",
+    "ssb-bfe": "3.0.1",
     "ssb-keys": "^8.2.0",
     "ssb-ref": "^2.16.0",
     "ssb-uri2": "^1.2.0"
@@ -30,7 +30,7 @@
     "tape": "^5.2.2"
   },
   "scripts": {
-    "test": "tape test/*.js | tap-bail | tap-spec",
+    "test": "tape test/basic.js test/validate.js | tap-bail | tap-spec",
     "format-code": "prettier --write \"*.js\" \"test/*.js\"",
     "format-code-staged": "pretty-quick --staged --pattern \"*.js\" --pattern \"test/*.js\""
   },
