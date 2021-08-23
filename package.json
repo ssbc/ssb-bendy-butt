@@ -1,12 +1,16 @@
 {
   "name": "ssb-bendy-butt",
   "description": "A boring butt feed format for meta feeds in SSB",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "homepage": "https://github.com/ssb-ngi-pointer/ssb-bendy-butt",
   "repository": {
     "type": "git",
     "url": "git://github.com/ssb-ngi-pointer/ssb-bendy-butt.git"
   },
+  "files": [
+    "*.js",
+    "!example.js"
+  ],
   "dependencies": {
     "bencode": "^2.0.1",
     "is-canonical-base64": "^1.1.1",
@@ -17,6 +21,7 @@
   },
   "devDependencies": {
     "husky": "^4.3.0",
+    "nyc": "^15.1.0",
     "prettier": "^2.1.2",
     "pretty-quick": "^3.1.0",
     "pull-stream": "^3.6.14",
@@ -31,6 +36,7 @@
   },
   "scripts": {
     "test": "tape test/basic.js test/validate.js | tap-bail | tap-spec",
+    "coverage": "nyc --reporter=lcov npm test",
     "format-code": "prettier --write \"*.js\" \"test/*.js\"",
     "format-code-staged": "pretty-quick --staged --pattern \"*.js\" --pattern \"test/*.js\""
   },
