@@ -19,7 +19,7 @@
     },
     {
       "Name": "subfeed2 author",
-      "Feed": "ssb:feed/gabby-grove/FY5OG311W4j_KPh8H9B2MZt4WSziy_p-ABkKERJdujQ="
+      "Feed": "ssb:feed/gabbygrove-v1/FY5OG311W4j_KPh8H9B2MZt4WSziy_p-ABkKERJdujQ="
     },
     {
       "Name": "existing subfeed author",
@@ -41,7 +41,12 @@
           "subfeed": "@Oo6OYCGsjLP3n+cep4FiHJJZGHyqKWztnhDk7vJhi3A=.ed25519",
           "metafeed": "ssb:feed/bendybutt-v1/b99R2e7lj8h7NFqGhOu6lCGy8gLxWV-J4ORd1X7rP3c=",
           "nonce": "IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyM=",
-          "tangles": { "metafeed": { "root": null, "previous": null } }
+          "tangles": {
+            "metafeed": {
+              "root": null,
+              "previous": null
+            }
+          }
         },
         {
           "Name": "subfeed signature",
@@ -61,10 +66,15 @@
         {
           "type": "metafeed/add/derived",
           "feedpurpose": "experimental",
-          "subfeed": "ssb:feed/gabby-grove/FY5OG311W4j_KPh8H9B2MZt4WSziy_p-ABkKERJdujQ=",
+          "subfeed": "ssb:feed/gabbygrove-v1/FY5OG311W4j_KPh8H9B2MZt4WSziy_p-ABkKERJdujQ=",
           "metafeed": "ssb:feed/bendybutt-v1/b99R2e7lj8h7NFqGhOu6lCGy8gLxWV-J4ORd1X7rP3c=",
           "nonce": "QkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkI=",
-          "tangles": { "metafeed": { "root": null, "previous": null } }
+          "tangles": {
+            "metafeed": {
+              "root": null,
+              "previous": null
+            }
+          }
         },
         {
           "Name": "subfeed2 signature",
@@ -114,7 +124,12 @@
           "feedpurpose": "metafeed upgrade of existing",
           "subfeed": "ssb:feed/bamboo/4x4183TbjTA46ROc5Uj9FmtE-H2bFVVeGjQzGwdlZCw=",
           "metafeed": "ssb:feed/bendybutt-v1/b99R2e7lj8h7NFqGhOu6lCGy8gLxWV-J4ORd1X7rP3c=",
-          "tangles": { "metafeed": { "root": null, "previous": null } }
+          "tangles": {
+            "metafeed": {
+              "root": null,
+              "previous": null
+            }
+          }
         },
         {
           "Name": "subfeed signature",
