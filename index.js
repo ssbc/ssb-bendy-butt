@@ -120,7 +120,7 @@ function encodeNew(
   if (content.recps) {
     contentSection = boxer(
       bfe.encode(author),
-      bencode.encode(contentSection),
+      bencode.encode(bfe.encode(contentSection)),
       bfe.encode(previous),
       content.recps
     )
@@ -192,6 +192,8 @@ function validateSingle(msgVal, previousMsg, hmacKey) {
       bfe.encode(previous),
       content.recps
     )
+  } else if (isBoxedString(content)) {
+    contentSection = content
   }
 
   const payload = [author, sequence, previous, timestamp, contentSection]
