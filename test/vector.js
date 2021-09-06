@@ -34,7 +34,7 @@ tape('vector', function (t) {
   const mfKeys = deriveFeedKeyFromSeed(
     Buffer.from(mfHex, 'hex'),
     'testfeed',
-    'bendy butt'
+    'bendybutt-v1'
   )
   const sf1Keys = deriveFeedKeyFromSeed(
     Buffer.from(mfHex, 'hex'),
