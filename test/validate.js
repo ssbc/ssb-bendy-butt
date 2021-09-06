@@ -289,9 +289,8 @@ tape('validation works (decodeAndValidateSingle)', function (t) {
   /* tests using `testvector-metafeed-bad-messages.json` */
   /* --------------------------------------------------- */
 
-  /*
   t.pass('[ vector tests ]')
- 
+
   const badAuthorTypeMsg = Buffer.from(
     badVec.Cases[0].Entries[0].EncodedData,
     'hex'
@@ -337,6 +336,7 @@ tape('validation works (decodeAndValidateSingle)', function (t) {
     'catches invalid author (TFD length)'
   )
 
+  /*
   const bptPrev = Buffer.from(badVec.Cases[3].Entries[0].EncodedData, 'hex')
   const bptPrevMsg = bb.decodeAndValidateSingle(bptPrev, null, null)
   const badPreviousTypeMsg = Buffer.from(
@@ -481,5 +481,6 @@ tape('validation works (decodeAndValidateSingle)', function (t) {
     'catches invalid message size'
   )
 */
+
   t.end()
 })
