@@ -30,11 +30,13 @@ function entryToMsgValue(entry) {
 
 tape('vector', function (t) {
   const getHex = (obj) => obj.HexString
-  const [mfHex, sf1Hex, sf2Hex] = vec.Metadata.filter(getHex).map(getHex)
+  // TODO: this needs to be cleaned up badly...
+  const [mfHex, sf1Hex, sf2Hex, sf3Hex] =
+    vec.Metadata.filter(getHex).map(getHex)
   const mfKeys = deriveFeedKeyFromSeed(
     Buffer.from(mfHex, 'hex'),
     'testfeed',
-    'bendy butt'
+    'bendybutt-v1'
   )
   const sf1Keys = deriveFeedKeyFromSeed(
     Buffer.from(mfHex, 'hex'),
@@ -43,6 +45,11 @@ tape('vector', function (t) {
   const sf2Keys = deriveFeedKeyFromSeed(
     Buffer.from(mfHex, 'hex'),
     Buffer.from(sf2Hex, 'hex').toString('base64')
+  )
+  const sf3Keys = deriveFeedKeyFromSeed(
+    Buffer.from(sf3Hex, 'hex'),
+    'a pre existing feed',
+    'gabbygrove-v1'
   )
 
   vec.Entries.forEach((entry) => {
@@ -57,7 +64,16 @@ tape('vector', function (t) {
 
     t.deepEqual(decodedEncodedVecMsgVal, decoded, 'decode works')
 
-    const sfKeys = vecMsgVal.content.subfeed === sf1Keys.id ? sf1Keys : sf2Keys
+    // TODO: this needs to be cleaned up badly...
+    let sfKeys = vecMsgVal.content.subfeed === sf1Keys.id ? sf1Keys : null
+    if (sfKeys == null) {
+      sfKeys =
+        vecMsgVal.content.subfeed ===
+        'ssb:feed/gabbygrove-v1/FY5OG311W4j_KPh8H9B2MZt4WSziy_p-ABkKERJdujQ='
+          ? sf2Keys
+          : sf3Keys
+    }
+
     const bbmsg = bb.encodeNew(
       vecMsgVal.content,
       sfKeys,

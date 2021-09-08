@@ -289,9 +289,8 @@ tape('validation works (decodeAndValidateSingle)', function (t) {
   /* tests using `testvector-metafeed-bad-messages.json` */
   /* --------------------------------------------------- */
 
-  /*
   t.pass('[ vector tests ]')
- 
+
   const badAuthorTypeMsg = Buffer.from(
     badVec.Cases[0].Entries[0].EncodedData,
     'hex'
@@ -384,7 +383,7 @@ tape('validation works (decodeAndValidateSingle)', function (t) {
   )
   t.deepEqual(
     badPreviousLengthResult.message,
-    'invalid message: previous is "%S4a+j9puL4f5sVnI9y08FlIVtnzUdScMcg3ORdj3+A3/////////////////////.bbmsg-v1" but the computed hash of the previous message is "%S4a+j9puL4f5sVnI9y08FlIVtnzUdScMcg3ORdj3+A0=.bbmsg-v1", expected values to be identical',
+    'invalid message: previous is "ssb:message/bendybutt-v1/6Hcxz4DdtlFzBReDrFolk2bJ9dXHmiW1plFkAPfO3o3_____________________" but the computed hash of the previous message is "ssb:message/bendybutt-v1/6Hcxz4DdtlFzBReDrFolk2bJ9dXHmiW1plFkAPfO3o0=", expected values to be identical',
     'catches invalid previous (hash mismatch; length)'
   )
 
@@ -417,25 +416,24 @@ tape('validation works (decodeAndValidateSingle)', function (t) {
   )
   t.deepEqual(
     badPreviousResult.message,
-    'invalid message: previous is "%//////////////////////////////////////////8=.bbmsg-v1" but the computed hash of the previous message is "%NQxZPneHjrDQmQ21PcK26Zhtdfft6PCwKQALXEcNp5w=.bbmsg-v1", expected values to be identical',
+    'invalid message: previous is "ssb:message/bendybutt-v1/__________________________________________8=" but the computed hash of the previous message is "ssb:message/bendybutt-v1/QsJOQDJxn9EF3LjvMr5pdupEbAOwFgJSB_iWGh0u8-k=", expected values to be identical',
     'catches invalid previous (hash mismatch)'
   )
 
-  const badSignatureBase64Msg = Buffer.from(
+  const badSignatureMarkerMsg = Buffer.from(
     badVec.Cases[8].Entries[0].EncodedData,
     'hex'
   )
-  const badSignatureBase64Result = bb.decodeAndValidateSingle(
-    badSignatureBase64Msg,
-    null,
-    null
-  )
-  // not canonical base64
-  // we use `match` because of inability to match with `deepEqual` for weird characters
-  t.match(
-    badSignatureBase64Result.message,
-    /invalid message: signature/,
-    'catches invalid signature (not canonical base64)'
+  // this should make ssb-bfe explode: 'Cannot decode buffer acab32...'
+  t.throws(
+    () => {
+      bb.decodeAndValidateSingle(badSignatureMarkerMsg, null, null)
+    },
+    {
+      message:
+        'Cannot decode buffer acab32db9170193d7c5925380497fea41622cdaa9c19a94fecb053f3447549acf4b65a8687532c11e15108d20ce1f8878c6d33a3feb533f1515b1d3a2b4e9242080c',
+    },
+    'catches invalid signature (incorrect first two bytes)'
   )
 
   const badSignatureMsg = Buffer.from(
@@ -452,7 +450,6 @@ tape('validation works (decodeAndValidateSingle)', function (t) {
     'invalid message: signature must correctly sign the payload',
     'catches invalid signature (bits flipped)'
   )
-
   const bseqPrev = Buffer.from(badVec.Cases[10].Entries[0].EncodedData, 'hex')
   const bseqPrevMsg = bb.decodeAndValidateSingle(bseqPrev, null, null)
   const badSequenceMsg = Buffer.from(
@@ -480,6 +477,6 @@ tape('validation works (decodeAndValidateSingle)', function (t) {
     'invalid message size: 8204 bytes, must not be greater than 8192 bytes',
     'catches invalid message size'
   )
-*/
+
   t.end()
 })
