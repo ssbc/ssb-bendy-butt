@@ -46,10 +46,6 @@ tape('vector', function (t) {
     Buffer.from(mfHex, 'hex'),
     Buffer.from(sf2Hex, 'hex').toString('base64')
   )
-  // WARNING:
-  // gabbygrove-v1 is not currently recognised by `deriveFeedKeyFromSeed`
-  // this only works because the gabbygrove-v1 format is accidentally treated as classic
-  // (it doesn't match the `=== bendybutt-v1` check and therefore defaults to classic)
   const sf3Keys = deriveFeedKeyFromSeed(
     Buffer.from(sf3Hex, 'hex'),
     'a pre existing feed',
