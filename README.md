@@ -1,4 +1,6 @@
 # SSB Bendy Butt
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fssb-ngi-pointer%2Fssb-bendy-butt.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fssb-ngi-pointer%2Fssb-bendy-butt?ref=badge_shield)
+
 
 Implementation of [bendy butt] in JS
 
@@ -63,3 +65,7 @@ array of content and content signature.
 
 
 [bendy butt]: https://github.com/ssb-ngi-pointer/bendy-butt-spec
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fssb-ngi-pointer%2Fssb-bendy-butt.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fssb-ngi-pointer%2Fssb-bendy-butt?ref=badge_large)
