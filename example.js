@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2021 Anders Rune Jensen
+//
+// SPDX-License-Identifier: Unlicense
+
 const fs = require('fs')
 const path = require('path')
 const ssbKeys = require('ssb-keys')

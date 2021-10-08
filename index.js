@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2021 Anders Rune Jensen
+//
+// SPDX-License-Identifier: LGPL-3.0-only
+
 const bencode = require('bencode')
 const ssbKeys = require('ssb-keys')
 const bfe = require('ssb-bfe')
