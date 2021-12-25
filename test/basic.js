@@ -45,6 +45,44 @@ tape('encode/decode works', function (t) {
   t.end()
 })
 
+tape('timestamps are unsigned', function (t) {
+  const msg = {
+    previous:
+      'ssb:message/bendybutt-v1/H3MlLmVPVgHU6rBSzautUBZibDttkI-cU4lAFUIM8Ag=',
+    author:
+      'ssb:feed/bendybutt-v1/6CAxOI3f-LUOVrbAl0IemqiS7ATpQvr9Mdw9LC4-Uv0=',
+    sequence: 2,
+    timestamp: Date.parse('01 Jan 2080 00:00:00 GMT'),
+    content: {
+      type: 'metafeed/add/existing',
+      feedpurpose: 'test',
+      subfeed:
+        'ssb:feed/bendybutt-v1/6CAxOI3f-LUOVrbAl0IemqiS7ATpQvr9Mdw9LC4-Uv0=',
+      classichash: '%H3MlLmVPVgHU6rBSzautUBZibDttkI+cU4lAFUIM8Ag=.sha256',
+      bool: true,
+      tangles: {
+        metafeed: {
+          root: null,
+          previous: [
+            'ssb:message/bendybutt-v1/H3MlLmVPVgHU6rBSzautUBZibDttkI-cU4lAFUIM8Ag=',
+          ],
+        },
+      },
+    },
+    contentSignature:
+      'K1PgBYX64NUB6bBzcfu4BPEJtjl/Y+PZx7h/y94k6OjqCR9dIHXzjdiM4P7terusbSO464spYjz/LwvP4nqzAg==.sig.ed25519',
+    signature:
+      'F/XZ1uOwXNLKSHynxIvV/FUW1Fd9hIqxJw8TgTbMlf39SbVTwdRPdgxZxp9DoaMIj2yEfm14O0L9kcQJCIW2Cg==.sig.ed25519',
+  }
+
+  const encoded = bb.encode(msg)
+  t.equal(Buffer.isBuffer(encoded), true, 'buffer')
+  const decoded = bb.decode(encoded)
+  t.equal(decoded.timestamp, 3471292800000)
+  t.deepEqual(decoded, msg, 'properly decoded')
+  t.end()
+})
+
 tape('encodeNew', function (t) {
   const mfKeys = {
     curve: 'ed25519',
