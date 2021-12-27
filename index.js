@@ -185,7 +185,7 @@ function validateSingle(msgVal, previousMsg, hmacKey) {
 
   if (typeof timestamp !== 'number' || isNaN(timestamp) || !isFinite(timestamp))
     return new Error(
-      `invalid message: timestamp is "${timestamp}", expected a 32 bit integer`
+      `invalid message: timestamp is "${timestamp}", expected a JavaScript number`
     )
 
   let contentSection = [content, contentSignature]
