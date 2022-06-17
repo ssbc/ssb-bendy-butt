@@ -43,7 +43,7 @@ const ssbKeys = require('ssb-keys');
 const bendyButtFormat = require('ssb-bendy-butt');
 
 const msgVal = bendyButtFormat.newNativeMsg({
-  keys: ssbKeys.generate(),
+  keys: ssbKeys.generate(null, null, 'bendybutt-v1'),
   content: {
     type: 'post',
     text: 'Hello, world!',
