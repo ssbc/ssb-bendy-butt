@@ -8,7 +8,7 @@ SPDX-License-Identifier: CC0-1.0
 
 Implementation of [bendy butt] in JS.
 
-You can use this modules as an ssb-db2 plugin, or you can use it as a standalone tool to generate and validate bendybutt messages.
+You can use this module as an ssb-db2 plugin, or you can use it as a standalone tool to generate and validate bendybutt messages.
 
 ## Installation
 
@@ -38,9 +38,11 @@ Now you can call ssb-db2's `create(opts)` API providing `opts.feedFormat` as `"b
 
 ## Usage as a standalone
 
+Notice you import the `/format` from the module.
+
 ```js
 const ssbKeys = require('ssb-keys');
-const bendyButtFormat = require('ssb-bendy-butt');
+const bendyButtFormat = require('ssb-bendy-butt/format');
 
 const msgVal = bendyButtFormat.newNativeMsg({
   keys: ssbKeys.generate(null, null, 'bendybutt-v1'),
