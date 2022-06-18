@@ -6,7 +6,7 @@ const tape = require('tape')
 const fs = require('fs')
 const bfe = require('ssb-bfe')
 const { deriveFeedKeyFromSeed } = require('ssb-meta-feeds/keys')
-const bb = require('../')
+const bendybutt = require('../format')
 
 const vec = JSON.parse(
   fs.readFileSync('test/testvector-metafeed-managment.json', 'utf8')
@@ -58,15 +58,17 @@ tape('vector', function (t) {
 
   vec.Entries.forEach((entry) => {
     const vecMsgVal = entryToMsgValue(entry)
-    const encodedVecMsgVal = bb.encode(vecMsgVal)
+    const vecNativeMsg = bendybutt.toNativeMsg(vecMsgVal)
     const vecEncoded = entry.EncodedData
 
-    t.deepEqual(encodedVecMsgVal.toString('hex'), vecEncoded, 'encode works')
+    t.deepEqual(vecNativeMsg.toString('hex'), vecEncoded, 'toNativeMsg works')
 
-    const decodedEncodedVecMsgVal = bb.decode(encodedVecMsgVal)
-    const decoded = bb.decode(Buffer.from(entry.EncodedData, 'hex'))
+    const decodedEncodedVecMsgVal = bendybutt.fromNativeMsg(vecNativeMsg)
+    const decoded = bendybutt.fromNativeMsg(
+      Buffer.from(entry.EncodedData, 'hex')
+    )
 
-    t.deepEqual(decodedEncodedVecMsgVal, decoded, 'decode works')
+    t.deepEqual(decodedEncodedVecMsgVal, decoded, 'fromNativeMsg works')
 
     // TODO: this needs to be cleaned up badly...
     let sfKeys = vecMsgVal.content.subfeed === sf1Keys.id ? sf1Keys : null
@@ -78,17 +80,20 @@ tape('vector', function (t) {
           : sf3Keys
     }
 
-    const bbmsg = bb.encodeNew(
-      vecMsgVal.content,
-      sfKeys,
-      mfKeys,
-      vecMsgVal.sequence,
-      vecMsgVal.previous,
-      vecMsgVal.timestamp
-    )
-    const rebuiltMsgVal = bb.decode(bbmsg)
+    const bbmsg = bendybutt.newNativeMsg({
+      content: vecMsgVal.content,
+      keys: mfKeys,
+      contentKeys: sfKeys,
+      previous: {
+        key: vecMsgVal.previous,
+        value: { sequence: vecMsgVal.sequence - 1 },
+      },
+      timestamp: vecMsgVal.timestamp,
+      hmacKey: null,
+    })
+    const rebuiltMsgVal = bendybutt.fromNativeMsg(bbmsg)
 
-    t.deepEquals(vecMsgVal, rebuiltMsgVal, 'encodeNew works')
+    t.deepEquals(vecMsgVal, rebuiltMsgVal, 'newNativeMsg works')
   })
 
   t.end()

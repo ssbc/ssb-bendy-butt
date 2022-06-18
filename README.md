@@ -6,66 +6,56 @@ SPDX-License-Identifier: CC0-1.0
 
 # SSB Bendy Butt
 
-Implementation of [bendy butt] in JS
+Implementation of [bendy butt] in JS.
 
-## API
+You can use this module as an ssb-db2 plugin, or you can use it as a standalone tool to generate and validate bendybutt messages.
 
-### decode(bbmsg)
+## Installation
 
-Takes a bencoded message and returns an object compatible with the shape of
-`msg.value` under classic SSB feeds.
+```bash
+npm install ssb-bendy-butt
+```
 
-### encode(msgVal)
+Requires Node.js 12 or higher.
 
-Takes an object compatible with the shape of `msg.value` under classic SSB feeds
-and returns a bencoded message Buffer.
+## Usage in ssb-db2
 
-### encodeNew(content, contentKeys, keys, sequence, previousMsgId, timestamp, hmacKey?, boxer?)
+- Requires **Node.js 12** or higher
+- Requires `secret-stack@^6.2.0`
+- Requires `ssb-db2@>=5.0.0`
 
-Creates a bencoded message Buffer for a new message to be appended to the bendy
-butt feed owned by the author identified by `keys`.
+```diff
+ SecretStack({appKey: require('ssb-caps').shs})
+   .use(require('ssb-master'))
++  .use(require('ssb-db2'))
++  .use(require('ssb-bendy-butt'))
+   .use(require('ssb-conn'))
+   .use(require('ssb-blobs'))
+   .call(null, config)
+```
 
-Takes an arbitrary `content` object and an (optional) `contentKeys` which is
-used to sign the content. If `contentKeys` is missing, the signature will be
-done using `keys` instead. The other arguments comprise the metadata section of
-the bendy-butt message, i.e. `author` (deduced from `keys`), `sequence`,
-`previousMsgId` and `timestamp`.
+Now you can call ssb-db2's `create(opts)` API providing `opts.feedFormat` as `"bendybutt-v1"`.
 
-Finally, if the new message is meant to be encrypted to some recipients
-(determined by `content.recps`, an array of feed IDs), then `encodeNew` needs a
-`boxer` function of type `(bbAuthor, bbContentSection, bbPreviousMsgId, recps) => string (.box2)`.
-The arguments `bbAuthor`, `bbContentSection` and `bbPreviousMsgId` must be
-encoded in `bencode` and BFE, and `recps` is the array of recipient IDs.
+## Usage as a standalone
 
-### validateSingle(msgVal, previousMsg?, hmacKey?)
+Notice you import the `/format` from the module.
 
-Takes an unencoded object compatible with the shape of `msg.value` under classic SSB feeds and performs validation according to the criteria defined in the [bendy butt spec](https://github.com/ssb-ngi-pointer/bendy-butt-spec#specification).
+```js
+const ssbKeys = require('ssb-keys');
+const bendyButtFormat = require('ssb-bendy-butt/format');
 
-The `previousMsg` parameter is optional and can be omitted if the message being validated is the first message on a feed (`sequence` is `1`). In all other cases it is required. The `hmacKey` is also optional and is only required if an HMAC value was supplied to `encodeNew()` when the message being validated was created.
+const msgVal = bendyButtFormat.newNativeMsg({
+  keys: ssbKeys.generate(null, null, 'bendybutt-v1'),
+  content: {
+    type: 'post',
+    text: 'Hello, world!',
+  },
+  timestamp: Date.now(),
+  previous: null,
+  hmacKey: null,
+});
+```
 
-In the event of successful validation, an `undefined` value is returned.
-
-If validation fails, an `Error` object is returned with `Error.message` describing the failure.
-
-### decodeAndValidateSingle(bbmsg, previousMsg?, hmacKey?)
-
-Takes a bencoded message Buffer consisting of BFE-encoded values, decodes it and performs validation according to the criteria defined in the [bendy butt spec](https://github.com/ssb-ngi-pointer/bendy-butt-spec#specification).
-
-The `previousMsg` parameter is optional and can be omitted if the message being validated is the first message on a feed (`sequence` is `1`). In all other cases it is required. The `hmacKey` is also optional and is only required if an HMAC value was supplied to `encodeNew()` when the message being validated was created.
-
-In the event of successful validation, the decoded `msgVal` object is returned with fields for `author`, `sequence`, `previous`, `timestamp`, `signature` and `content`.
-
-If validation fails, an `Error` object is returned with `Error.message` describing the failure.
-
-### hash(msgVal)
-
-Calculate the message key (as a sigil-based string) for the given "msg value"
-(an object with the shape `msg.value` as known in classic SSB feeds).
-
-### decodeBox2(decryptedBox2)
-
-Takes a buffer of decrypted box2 content and decodes that into an
-array of content and content signature.
-
+This module conforms with [ssb-feed-format](https://github.com/ssbc/ssb-feed-format) so with ssb-bendy-butt you can use all the methods specified by ssb-feed-format.
 
 [bendy butt]: https://github.com/ssb-ngi-pointer/bendy-butt-spec

@@ -3,10 +3,9 @@
 // SPDX-License-Identifier: Unlicense
 
 const tape = require('tape')
-const crypto = require('crypto')
-const bb = require('../')
+const bendybutt = require('../format')
 
-tape('encode/decode works', function (t) {
+tape('fromNativeMsg/toNativeMsg works', function (t) {
   // a message with lots of different cases, please note the
   // signatures are fake (and not relevant to encode/decode test)
   const msg = {
@@ -38,10 +37,11 @@ tape('encode/decode works', function (t) {
       'F/XZ1uOwXNLKSHynxIvV/FUW1Fd9hIqxJw8TgTbMlf39SbVTwdRPdgxZxp9DoaMIj2yEfm14O0L9kcQJCIW2Cg==.sig.ed25519',
   }
 
-  const encoded = bb.encode(msg)
-  t.equal(Buffer.isBuffer(encoded), true, 'buffer')
-  const decoded = bb.decode(encoded)
-  t.deepEqual(decoded, msg, 'properly decoded')
+  const nativeMsg = bendybutt.toNativeMsg(msg)
+  t.equal(Buffer.isBuffer(nativeMsg), true, 'buffer')
+  const msg2 = bendybutt.fromNativeMsg(nativeMsg)
+  t.deepEqual(msg2, msg, 'properly decoded')
+
   t.end()
 })
 
@@ -75,11 +75,12 @@ tape('timestamps are unsigned', function (t) {
       'F/XZ1uOwXNLKSHynxIvV/FUW1Fd9hIqxJw8TgTbMlf39SbVTwdRPdgxZxp9DoaMIj2yEfm14O0L9kcQJCIW2Cg==.sig.ed25519',
   }
 
-  const encoded = bb.encode(msg)
-  t.equal(Buffer.isBuffer(encoded), true, 'buffer')
-  const decoded = bb.decode(encoded)
-  t.equal(decoded.timestamp, 3471292800000)
-  t.deepEqual(decoded, msg, 'properly decoded')
+  const nativeMsg = bendybutt.toNativeMsg(msg)
+  t.equal(Buffer.isBuffer(nativeMsg), true, 'buffer')
+  const msg2 = bendybutt.fromNativeMsg(nativeMsg)
+  t.equal(msg2.timestamp, 3471292800000)
+  t.deepEqual(msg2, msg, 'properly decoded')
+
   t.end()
 })
 
@@ -112,9 +113,17 @@ tape('encodeNew', function (t) {
     },
   }
 
-  const bbmsg1 = bb.encodeNew(mainContent, mainKeys, mfKeys, 1, null, 12345)
-  const msgVal1 = bb.decode(bbmsg1)
-  const msg1ID = bb.hash(msgVal1)
+  const nativeMsg = bendybutt.newNativeMsg({
+    keys: mfKeys,
+    contentKeys: mainKeys,
+    content: mainContent,
+    timestamp: 12345,
+    previous: null,
+    hmacKey: null,
+  })
+
+  const msgVal1 = bendybutt.fromNativeMsg(nativeMsg)
+  const msg1ID = bendybutt.getMsgId(nativeMsg)
 
   t.equal(msgVal1.author, mfKeys.id, 'author is correct')
   t.equal(msgVal1.sequence, 1, 'sequence is correct')
@@ -144,15 +153,16 @@ tape('encodeNew', function (t) {
     },
   }
 
-  const bbmsg2 = bb.encodeNew(
-    indexesContent,
-    indexesKeys,
-    mfKeys,
-    2,
-    msg1ID,
-    23456
-  )
-  const msgVal2 = bb.decode(bbmsg2)
+  const nativeMsg2 = bendybutt.newNativeMsg({
+    content: indexesContent,
+    contentKeys: indexesKeys,
+    keys: mfKeys,
+    previous: { key: msg1ID, value: msgVal1 },
+    hmacKey: null,
+    timestamp: 23456,
+  })
+
+  const msgVal2 = bendybutt.fromNativeMsg(nativeMsg2)
 
   t.equal(msgVal2.author, mfKeys.id, 'author is correct')
   t.equal(msgVal2.sequence, 2, 'sequence is correct')
@@ -162,7 +172,7 @@ tape('encodeNew', function (t) {
   t.deepEquals(msgVal2.content, indexesContent, 'content is correct')
   t.equal(msgVal2.contentSignature.substr(0, 6), '0/J3F5', 'contentSignature')
 
-  const msgVal2network = bb.decode(bb.encode(msgVal2))
+  const msgVal2network = bendybutt.fromNativeMsg(bendybutt.toNativeMsg(msgVal2))
   t.deepEqual(msgVal2, msgVal2network)
 
   const hmacKey = Buffer.from(
@@ -170,17 +180,17 @@ tape('encodeNew', function (t) {
     'base64'
   )
 
-  const bbmsg3 = bb.encodeNew(
-    mainContent,
-    mainKeys,
-    mfKeys,
-    1,
-    null,
-    12345,
-    hmacKey
-  )
-  const msgVal3 = bb.decode(bbmsg3)
-  const msg3ID = bb.hash(msgVal3)
+  const nativeMsg3 = bendybutt.newNativeMsg({
+    content: mainContent,
+    keys: mfKeys,
+    contentKeys: mainKeys,
+    timestamp: 12345,
+    hmacKey,
+    previous: null,
+  })
+
+  const msgVal3 = bendybutt.fromNativeMsg(nativeMsg3)
+  const msg3ID = bendybutt.getMsgId(nativeMsg3)
 
   t.equal(msgVal3.author, mfKeys.id, 'author is correct')
   t.equal(msgVal3.sequence, 1, 'sequence is correct')
