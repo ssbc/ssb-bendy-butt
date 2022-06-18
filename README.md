@@ -56,6 +56,6 @@ const msgVal = bendyButtFormat.newNativeMsg({
 });
 ```
 
-This module conforms with [ssb-feed-format](https://github.com/ssbc/ssb-feed-format) so with ssb-classic you can use all the methods specified by ssb-feed-format.
+This module conforms with [ssb-feed-format](https://github.com/ssbc/ssb-feed-format) so with ssb-bendy-butt you can use all the methods specified by ssb-feed-format.
 
 [bendy butt]: https://github.com/ssb-ngi-pointer/bendy-butt-spec
