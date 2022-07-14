@@ -17,7 +17,7 @@
     "bencode": "^2.0.1",
     "ssb-bfe": "^3.3.0",
     "ssb-keys": "^8.4.0",
-    "ssb-uri2": "^1.8.1"
+    "ssb-uri2": "^2.0.0"
   },
   "devDependencies": {
     "c8": "^7.11.3",
