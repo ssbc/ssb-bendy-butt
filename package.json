@@ -1,7 +1,7 @@
 {
   "name": "ssb-bendy-butt",
   "description": "A boring butt feed format for meta feeds in SSB",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "homepage": "https://github.com/ssb-ngi-pointer/ssb-bendy-butt",
   "repository": {
     "type": "git",
