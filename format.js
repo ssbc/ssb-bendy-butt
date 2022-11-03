@@ -121,8 +121,7 @@ function toNativeMsg(msg, encoding = 'js') {
       content,
       contentSignature,
     } = msg
-    const contentSection =
-      typeof content === 'string' ? content : [content, contentSignature]
+    const contentSection = [content, contentSignature]
     const payload = [author, sequence, previous, timestamp, contentSection]
     const msgBFE = BFE.encode([payload, signature])
     const nativeMsg = bencode.encode(msgBFE)
